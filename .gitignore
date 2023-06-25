@@ -5,6 +5,7 @@
 .fleet
 .vscode
 .DS_Store
+.htaccess
 
 /vendor
 /runtime
@@ -39,3 +40,6 @@
 /database/migrations/20230209000001_install_wechat_service.php
 /database/migrations/20230224000001_install_account.php
 /database/migrations/20230225000001_install_payment.php
+public/nginx.htaccess
+public/.htaccess
+
