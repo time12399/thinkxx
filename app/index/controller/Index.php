@@ -22,6 +22,6 @@ class Index extends Controller
 {
     public function index()
     {
-        $this->redirect(sysuri('admin/login/index'));
+        
     }
 }
