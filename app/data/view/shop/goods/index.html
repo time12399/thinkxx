@@ -64,7 +64,7 @@
                     {/notempty}
                     <div class="inline-block sub-span-blue">
                         <div>商品名称：<span>{$vo.name|default='--'}</span></div>
-                        <div>商品编号：<span>{$vo.code|default='--'}</span></div>
+                        <div>商品code：<span>{$vo.num_code|default='--'}</span></div>
                     </div>
                 </td>
                 <td>
@@ -80,12 +80,9 @@
                     </div>
                 </td>
                 <td class='nowrap'>
-                    累计库存 <b>{$vo.stock_total}</b> 件，剩余库存 <b>{$vo.stock_total-$vo.stock_sales}</b> 件 ( 已销售 <b>{$vo.stock_sales}</b> 件 )
                     <div class="notselect margin-top-5">
-                        {eq name='vo.status' value='0'}<span class="layui-badge layui-bg-gray layui-border-red">已下架</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">销售中</span>{/eq}
-                        {eq name='vo.vip_entry' value='0'}<span class="layui-badge layui-bg-gray layui-border-blue">非入会礼包</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">是入会礼包</span>{/eq}
-                        {eq name='vo.truck_type' value='0'}<span class="layui-badge layui-bg-gray layui-border-blue">无需发货</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">需要发货</span>{/eq}
-                        {eq name='vo.rebate_type' value='0'}<span class="layui-badge layui-bg-gray layui-border-blue">非返利商品</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">是返利商品</span>{/eq}
+                        {eq name='vo.status' value='0'}<span class="layui-badge layui-bg-gray layui-border-red">已下架</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">已上架</span>{/eq}
+                        {eq name='vo.isopen' value='0'}<span class="layui-badge layui-bg-gray layui-border-red">休市中</span>{else}<span class="layui-badge layui-bg-gray layui-border-green">开市中</span>{/eq}
                     </div>
                 </td>
                 <td class='nowrap sub-strong-blue'>
@@ -99,6 +96,14 @@
                     <!--{else}-->
                     <a class="layui-btn layui-btn-xs layui-btn-primary layui-disabled" data-tips-text="您没有编辑商品的权限哦！">编 辑</a>
                     <!--{/if}-->
+
+                    {if $vo.isopen eq 1}
+                    <a class="layui-btn layui-btn-xs layui-btn-warm" data-action="{:url('isopen')}" data-value="code#{$vo.code};isopen#0">休 市</a>
+                    {else}
+                    <a class="layui-btn layui-btn-xs layui-btn-warm" data-action="{:url('isopen')}" data-value="code#{$vo.code};isopen#1">开 市</a>
+
+                    {/if}
+
 
                     {if isset($type) and $type eq 'index'}
                     {if isset($vo.status) and $vo.status eq 1}
@@ -115,9 +120,7 @@
                     <!--{/if}-->
                     {/if}
                     <!--{if auth("stock")}-->
-                    <a class="layui-btn layui-btn-xs layui-btn-normal" data-modal='{:url("stock")}?code={$vo.code}' data-title="商品入库">入 库</a>
                     <!--{else}-->
-                    <a class="layui-btn layui-btn-xs layui-btn-primary layui-disabled" data-tips-text="您没有商品入库的权限哦！">入 库</a>
                     <!--{/if}-->
                     <!--{if auth("remove")}-->
                     <a class="layui-btn layui-btn-xs layui-btn-danger" data-action="{:url('remove')}" data-confirm="确定要移入回收站吗？" data-value="code#{$vo.code};deleted#1">删 除</a>

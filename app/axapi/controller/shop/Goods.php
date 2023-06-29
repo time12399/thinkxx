@@ -14,25 +14,25 @@
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
 // +----------------------------------------------------------------------
 
-namespace app\data\controller\shop;
+namespace app\axapi\controller\shop;
 
-use app\data\model\BaseUserDiscount;
-use app\data\model\BaseUserPayment;
-use app\data\model\BaseUserUpgrade;
-use app\data\model\ShopGoods;
-use app\data\model\ShopGoodsCate;
-use app\data\model\ShopGoodsItem;
-use app\data\model\ShopGoodsMark;
-use app\data\model\ShopGoodsStock;
-use app\data\service\ExpressService;
-use app\data\service\GoodsService;
+use app\axapi\model\BaseUserDiscount;
+use app\axapi\model\BaseUserPayment;
+use app\axapi\model\BaseUserUpgrade;
+use app\axapi\model\ShopGoods;
+use app\axapi\model\ShopGoodsCate;
+use app\axapi\model\ShopGoodsItem;
+use app\axapi\model\ShopGoodsMark;
+use app\axapi\model\ShopGoodsStock;
+use app\axapi\service\ExpressService;
+use app\axapi\service\GoodsService;
 use think\admin\Controller;
 use think\admin\extend\CodeExtend;
 
 /**
  * 商品数据管理
  * Class Goods
- * @package app\data\controller\shop
+ * @package app\axapi\controller\shop
  */
 class Goods extends Controller
 {
@@ -145,15 +145,49 @@ class Goods extends Controller
             $data['code'] = CodeExtend::uniqidNumber(20, 'G');
         }
         if ($this->request->isGet()) {
+            $data['marks'] = str2arr($data['marks'] ?? '');
+            $data['payment'] = str2arr($data['payment'] ?? '');
+            $data['cateids'] = str2arr($data['cateids'] ?? '');
+            // 其他表单数据
+            $this->marks = ShopGoodsMark::items();
+            $this->cates = ShopGoodsCate::treeTable(true);
+            $this->trucks = ExpressService::templates();
+            $this->upgrades = BaseUserUpgrade::items();
+            $this->payments = BaseUserPayment::mk()->where(['status' => 1, 'deleted' => 0])->order('sort desc,id desc')->column('type,code,name', 'code');
+            $this->discounts = BaseUserDiscount::mk()->where(['status' => 1, 'deleted' => 0])->order('sort desc,id desc')->column('id,name,items', 'id');
             // 商品规格处理
-            // $fields = 'goods_sku `sku`,goods_code,goods_spec `key`,price_selling `selling`,price_market `market`,number_virtual `virtual`,number_express `express`,reward_balance `balance`,reward_integral `integral`,status';
-            // $data['data_items'] = json_encode(ShopGoodsItem::mk()->where(['goods_code' => $data['code']])->column($fields, 'goods_spec'), JSON_UNESCAPED_UNICODE);
-            $data['data_items'] = '';
+            $fields = 'goods_sku `sku`,goods_code,goods_spec `key`,price_selling `selling`,price_market `market`,number_virtual `virtual`,number_express `express`,reward_balance `balance`,reward_integral `integral`,status';
+            $data['data_items'] = json_encode(ShopGoodsItem::mk()->where(['goods_code' => $data['code']])->column($fields, 'goods_spec'), JSON_UNESCAPED_UNICODE);
         } elseif ($this->request->isPost()) {
             if (empty($data['cover'])) $this->error('商品图片不能为空！');
-            // if (empty($data['slider'])) $this->error('轮播图片不能为空！');
-            // if (empty($data['payment'])) $this->error('支付方式不能为空！');
-            // if (!empty($data['sort'])) $data['sort'] = $data['sort'];
+            if (empty($data['slider'])) $this->error('轮播图片不能为空！');
+            if (empty($data['payment'])) $this->error('支付方式不能为空！');
+            // 商品规格保存
+            [$data['price_market'], $data['price_selling']] = [0, 0];
+            [$count, $items] = [0, array_column(json_decode($data['data_items'], true), 0)];
+            foreach ($items as $item) if ($item['status'] > 0) {
+                if ($data['price_market'] === 0 || $data['price_market'] > $item['market']) $data['price_market'] = $item['market'];
+                if ($data['price_selling'] === 0 || $data['price_selling'] > $item['selling']) $data['price_selling'] = $item['selling'];
+                $count++;
+            }
+            if (empty($count)) $this->error('无效的的商品价格信息！');
+            $data['marks'] = arr2str($data['marks'] ?? []);
+            $data['payment'] = arr2str($data['payment'] ?? []);
+            ShopGoodsItem::mk()->where(['goods_code' => $data['code']])->update(['status' => 0]);
+            foreach ($items as $item) data_save(ShopGoodsItem::class, [
+                'goods_sku'       => $item['sku'],
+                'goods_spec'      => $item['key'],
+                'goods_code'      => $data['code'],
+                'price_market'    => $item['market'],
+                'price_selling'   => $item['selling'],
+                'number_virtual'  => $item['virtual'],
+                'number_express'  => $item['express'],
+                'reward_balance'  => $item['balance'],
+                'reward_integral' => $item['integral'],
+                'status'          => $item['status'] ? 1 : 0,
+            ], 'goods_spec', [
+                'goods_code' => $data['code'],
+            ]);
         }
     }
 
@@ -206,18 +240,6 @@ class Goods extends Controller
             }
             $this->error('没有需要商品入库的数据！');
         }
-    }
-    
-    /**
-     * 商品开休市
-     * @auth true
-     */
-    public function isopen()
-    {
-        ShopGoods::mSave($this->_vali([
-            'isopen.in:0,1'  => '状态值范围异常！',
-            'isopen.require' => '状态值不能为空！',
-        ]), 'code');
     }
 
     /**

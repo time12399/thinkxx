@@ -53,9 +53,16 @@
         <!--{/notempty}-->
 
         <label class="layui-form-item block relative">
-            <span class="help-label"><b>商品名称</b>Goods Name</span>
+            <span class="help-label"><b>产品名称</b>Goods Name</span>
             <input class="layui-input" name="name" placeholder="请输入商品名称" required value="{$vo.name|default=''}">
         </label>
+
+        <label class="layui-form-item block relative">
+            <span class="help-label"><b>产品代码</b>Goods Name</span>
+            <input class="layui-input" name="num_code" placeholder="请输入产品代码" required value="{$vo.num_code|default=''}">
+        </label>
+        
+
 
         <!--{notempty name='trucks'}-->
         <div class="layui-form-item block relative">
@@ -72,12 +79,12 @@
         <!--{/notempty}-->
 
         <div class="layui-form-item">
-            <span class="help-label label-required-prev"><b>商品封面及轮播图片</b>Cover and Carousel Pictures</span>
+            <span class="help-label label-required-prev"><b>图标</b>Cover and Carousel Pictures</span>
             <table class="layui-table">
                 <thead>
                 <tr>
-                    <th class="text-center">封面</th>
-                    <th class="text-left" style="width:100%">轮播图片</th>
+                    <th class="text-center">图标</th>
+                    <!-- <th class="text-left" style="width:100%">轮播图片</th> -->
                 </tr>
                 <tr>
                     <td class="text-center text-top padding-0">
@@ -86,18 +93,18 @@
                             <script>$('[name="cover"]').uploadOneImage();</script>
                         </div>
                     </td>
-                    <td class="text-left padding-0">
+                    <!-- <td class="text-left padding-0">
                         <div class="help-images">
                             <input name="slider" data-max-width="2048" data-max-height="1024" type="hidden" value="{$vo.slider|default=''}">
                             <script>$('[name="slider"]').uploadMultipleImage();</script>
                         </div>
-                    </td>
+                    </td> -->
                 </tr>
                 </thead>
             </table>
         </div>
 
-        <div class="goods-item-box">
+        <div style="display: none;" class="goods-item-box">
             <div class="flex flex-wrap">
                 <fieldset class="layui-bg-gray">
                     <legend><span class="layui-badge think-bg-violet">商品返利配置</span></legend>
@@ -189,7 +196,7 @@
             </div>
         </div>
 
-        <div class="layui-form-item" id="GoodsSpecs">
+        <div style="display: none;" class="layui-form-item" id="GoodsSpecs">
             <span class="help-label label-required-prev"><b>商品规格及商品SKU绑定</b><span class="color-red font-s12">（规格填写后不允许再次修改）</span></span>
             <div class="margin-bottom-10" ng-class="{true:'layui-show'}[mode==='add'&&specs.length>0]" ng-repeat="x in specs track by $index" style="display:none">
                 <div class="goods-spec-box padding-10 margin-0 relative" style="background:#ddd">
@@ -283,12 +290,141 @@
             </label>
         </div>
 
-        <label class="layui-form-item block">
+
+
+
+
+
+
+
+        <div class="layui-form-item" id="GoodsSpecs">
+            <table class="layui-table margin-top-10">
+                <thead>
+                <tr>
+                    <th class="text-center nowrap pointer"  width="12%"><b>上架</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>排序</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>最小波动</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>最大波动</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>当日最小值</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>当日最大值</b> </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="rows in items track by $index">
+                    
+                    <td class="text-center layui-bg-gray">
+                        <label class="think-checkbox margin-0 full-width full-height block">
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.status|default=1}" name="status" >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.sort|default=''}" name="sort" >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_low|default=''}" name="point_low" >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_top|default=''}" name="point_top" >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_low|default=''}" name="k_low" >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_top|default=''}" name="k_top" >
+                        </label>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="layui-form-item layui-row layui-col-space15">
+            <blockquote class="layui-elem-quote">
+                <p style="color:red">
+                    注意：开市时间，精准到秒，如：
+                    <b style="color:green;">
+                        00:00:00~03:00:00|08:00:00~23:59:59
+                    </b>
+                    不得出现中文符号，全天不开市请留空
+                </p>
+            </blockquote>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周一】
+                </span>
+                <input name="opentime_1" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_1|default=''}">
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周二】
+                </span>
+                <input name="opentime_2" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_2|default=''}">
+                <span style="padding-right: 12px; color: rgb(169, 68, 66); position: absolute; right: 0px; font-size: 12px; z-index: 2; display: block; width: 30px; text-align: center; pointer-events: none; top: 31.5px; padding-bottom: 0px; line-height: 38px;">
+                </span>
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周三】
+                </span>
+                <input name="opentime_3" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_3|default=''}">
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周四】
+                </span>
+                <input name="opentime_4" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_4|default=''}">
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周五】
+                </span>
+                <input name="opentime_5" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_5|default=''}">
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周六】
+                </span>
+                <input name="opentime_6" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_6|default=''}">
+            </label>
+            <label class="layui-col-xs3 relative">
+                <span class="color-green">
+                    开市时间【周日】
+                </span>
+                <input name="opentime_7" class="layui-input" placeholder="如：00:00:00~23:59:59"
+                value="{$vo.opentime_7|default=''}">
+                <span style="padding-right: 12px; color: rgb(169, 68, 66); position: absolute; right: 0px; font-size: 12px; z-index: 2; display: block; width: 30px; text-align: center; pointer-events: none; top: 31.5px; padding-bottom: 0px; line-height: 38px;">
+                </span>
+            </label>
+        </div>
+        
+        <label style="display: none;" class="layui-form-item">
+            <!-- class block -->
             <span class="help-label"><b>商品简介描述</b></span>
             <textarea class="layui-textarea" name="remark" placeholder="请输入商品简介描述">{$vo.remark|default=''|raw}</textarea>
         </label>
 
-        <div class="layui-form-item block">
+        <div style="display: none;" class="layui-form-item ">
+            <!-- class block -->
             <span class="help-label label-required-prev"><b>商品富文本详情</b></span>
             <textarea class="layui-hide" name="content">{$vo.content|default=''|raw}</textarea>
         </div>
@@ -296,8 +432,12 @@
         <div class="hr-line-dashed margin-top-40"></div>
         {notempty name='vo.code'}<input name="code" type="hidden" value="{$vo.code}">{/notempty}
 
+        <input name="marks" type="hidden" value=",,">
+        <input name="payment" type="hidden" value=",,">
+        <input name="slider" type="hidden" value="">
+
         <div class="layui-form-item text-center">
-            <button class="layui-btn layui-btn-danger" ng-click="pageBack()" type="button">取消编辑</button>
+            <button class="layui-btn layui-btn-danger" onclick="pageBack1()" ng-click="pageBack()" type="button">取消编辑</button>
             <button class="layui-btn" type="submit">保存商品</button>
         </div>
     </div>
@@ -324,7 +464,11 @@
         }
         layui.form.render();
     }
-
+    function pageBack1(){
+        $.msg.confirm('确定要取消编辑吗？', function (index) {
+            history.back(), $.msg.close(index);
+        });
+    }
     /*! 加载扩展插件 */
     require(['ckeditor', 'angular'], function () {
         window.createEditor('[name="content"]', {height: 500});
@@ -338,7 +482,7 @@
                 return code;
             })(Date.now().toString(), prefix || '' + '')
         }
-
+        
         function callback($rootScope) {
             $rootScope.mode = '{$mode|default="add"}', $rootScope.navas = [];
             $rootScope.items = angular.fromJson(angular.element('#GoodsItems').val() || '[]') || {};
