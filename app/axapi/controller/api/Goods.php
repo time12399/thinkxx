@@ -91,7 +91,7 @@ class Goods extends Controller
         $data = $this->_vali(['pid.require' => '请选择产品']);
         $user = ($this->isuser());
         //未登录
-        if($user[0] == 9)
+        if($user[0] == 0)
         {
             $this->error('登录失败', [], 401);
         }
@@ -107,8 +107,31 @@ class Goods extends Controller
         }else{
             $this->error('添加失败', [], 2);
         }
-
     }
+    //删除收藏
+    public function delGoods()
+    {
+        $data = $this->_vali(['pid.require' => '请选择产品']);
+        $user = ($this->isuser());
+        //未登录
+        if($user[0] == 0)
+        {
+            $this->error('登录失败', [], 401);
+        }
+
+        if($user[0] == 1){
+            //已登录-删除收藏
+            $m = Db::table('data_user_my_collect')->where(['pid'=>$data['pid'],'uid'=>$user[2]])->delete();
+            if($m){
+                $this->success('操作成功');
+            }else{
+                $this->error('操作失败', [], 2);
+            }
+        }else{
+            $this->error('操作失败', [], 2);
+        }
+    }
+
     /**
      * 获取商品数据
      * @throws \think\db\exception\DataNotFoundException
