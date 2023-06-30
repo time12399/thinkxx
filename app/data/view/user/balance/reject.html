@@ -1,0 +1,25 @@
+<form action="{:url('state')}" method="post" data-auto="true" class="layui-form layui-card">
+    <div class="layui-card-body padding-left-40">
+        <div class="layui-form-item relative block">
+            <label class="layui-form-item ">
+                <span class="help-label"><b>驳回理由</b>Name</span>
+                <input class="layui-input" maxlength="100" name="reason" placeholder="驳回理由" required value="">
+            </label>
+        </div>
+    </div>
+    <input type="hidden" name="id" value="{$data.id}">
+    <input type="hidden" name="status" value="3">
+
+
+    <div class="layui-form-item text-center">
+        <button class="layui-btn" type='submit'>保存数据</button>
+        <button class="layui-btn layui-btn-danger" data-close data-confirm="确定要取消编辑吗？" type='button'>取消编辑</button>
+    </div>
+</form>
+
+<style>
+    .WechatUserHead {
+        width: 138px !important;
+        height: 138px !important;
+    }
+</style>

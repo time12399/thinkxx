@@ -20,6 +20,8 @@ use app\axapi\controller\api\Auth;
 use app\axapi\model\DataUserBalance;
 use think\admin\helper\QueryHelper;
 
+use think\admin\extend\CodeExtend;
+
 /**
  * 用户余额转账
  * Class Balance
@@ -27,6 +29,35 @@ use think\admin\helper\QueryHelper;
  */
 class Balance extends Auth
 {
+
+    /**
+     * 充值接口
+     */
+    public function addRecharge()
+    {
+        $data = $this->_vali([
+            'amount.require' => lang('notamount'),
+            'network.require' => lang('notnetwork'),
+        ]);
+
+        $DataUserBalance = new DataUserBalance;
+        $code = CodeExtend::uniqidDate('20', 'USER');
+        $m = $DataUserBalance->save([
+            "status"=>2,
+            "uuid"=>$this->uuid,
+            "name"=>'用户提交充值',
+            "code"=>$code,
+            "amount"=>$data['amount'],
+            "network"=>$data['network']
+        ]);
+        if($m){
+            $this->success('操作成功');
+        }else{
+            $this->error('操作成功','{}',0);
+        }
+    }
+
+
     /**
      * 获取用户余额记录
      */

@@ -54,8 +54,8 @@ class Portal extends Controller
                     '订单金额' => ShopOrder::mk()->whereLike('create_at', "{$date}%")->whereRaw('status>=4')->sum('amount_total'),
                     '返利金额' => DataUserRebate::mk()->whereLike('create_at', "{$date}%")->sum('amount'),
                     '剩余余额' => DataUserBalance::mk()->whereRaw("create_at<='{$date} 23:59:59' and deleted=0")->sum('amount'),
-                    '充值余额' => DataUserBalance::mk()->whereLike('create_at', "{$date}%")->whereRaw('amount>0 and deleted=0')->sum('amount'),
-                    '消费余额' => DataUserBalance::mk()->whereLike('create_at', "{$date}%")->whereRaw('amount<0 and deleted=0')->sum('amount'),
+                    '充值余额' => DataUserBalance::mk()->whereLike('create_at', "{$date}%")->whereRaw('amount>0 and deleted=0 and status=1')->sum('amount'),
+                    '消费余额' => DataUserBalance::mk()->whereLike('create_at', "{$date}%")->whereRaw('amount<0 and deleted=0 and status=1')->sum('amount'),
                 ];
             }
             $this->app->cache->set('portals', $this->days, 60);
