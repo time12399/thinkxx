@@ -151,12 +151,14 @@ class Goods extends Controller
             
             $list = Db::table('shop_goods')
                 ->alias('b')
-                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent')
+                ->leftjoin('shop_data a','a.media_id = b.id')
+                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,a.date,a.date,a.now_buy,a.now_sell')
                 ->cache(true,60)
                 ->paginate($this->page);
 
             $this->success('获取商品数据', $list);
         }
+
         if($user[0] == 1){
             //已登录-查看自己的收藏
             // $list = DataUserMyCollect::with('ShopGoods')->select();
@@ -165,12 +167,14 @@ class Goods extends Controller
 
             $list = Db::table('data_user_my_collect')
                 ->alias('a')
-                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent')
+                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,c.date,c.date,c.now_buy,c.now_sell')
                 ->leftjoin('shop_goods b','a.pid = b.id')
                 ->where('a.uid',1)
+                ->leftjoin('shop_data c','c.media_id = b.id')
                 ->where(['a.is_deleted' => 0])
                 ->cache(true,60)
                 ->paginate($this->page);
+
             $this->success('获取商品数据', $list);
         }else{
             $this->error('用户登录失败！', '{-null-}', 401);
