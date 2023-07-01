@@ -84,7 +84,29 @@ class Goods extends Controller
     {
         $this->success('获取标签成功', ShopGoodsMark::items());
     }
-
+    //搜索产品--默认返回全部
+    public function searchGoods()
+    {
+        $user = ($this->isuser());
+        //未登录
+        if($user[0] == 0)
+        {
+            $this->error('登录失败', [], 401);
+        }
+        //产品类别
+        $class1=Db::table('shop_goods_cate')->where(['status' => 1,'deleted' => 0])->cache(true,600)->select();
+        $list = [];
+        $a = 0;
+        foreach($class1 as $v){
+            $list[$a]['class_name'] = $v['name'];
+            $list[$a][$v['name']] = ShopGoods::where(['deleted' => 0,'deleted' => 0,'cateids' => $v['id']])
+            ->cache(true,60)
+            ->field('id,name,remark,cateids')
+            ->select();
+            $a++;
+        }
+        $this->success('操作成功', $list);   
+    }
     //添加收藏
     public function addGoods()
     {
