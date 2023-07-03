@@ -8,6 +8,7 @@
 .htaccess
 
 /vendor
+/GatewayWorker
 /runtime
 /safefile
 /nbproject

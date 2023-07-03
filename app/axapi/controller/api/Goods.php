@@ -31,6 +31,10 @@ use app\axapi\model\DataUserMyCollect;
 use think\facade\Db;
 use app\validate\JsonValidate;
 
+use GatewayClient\Gateway;
+
+use think\facade\Cache;
+
 /**
  * 商品数据接口
  * Class Goods
@@ -42,8 +46,26 @@ class Goods extends Controller
     protected function initialize()
     {
         $this->page = 10;
+        Gateway::$registerAddress = '127.0.0.1:1238';
     }
     
+
+    //队列任务-给每个用户发消息
+    public function sendMemberMsg(){
+        $user = Cache::store('file')->get('user_arr');
+        var_dump($user);
+        $message = '{"type":"send_to_uid","uid":"xxxxx", "message":"...."}';
+        // $req_data = json_decode($message, true);
+        Gateway::sendToAll($message);
+        var_dump('发送消息');
+    }
+    //队列每秒给用户发消息
+    public function sendmsg(){
+        $title = '异步发送消息';
+        $command = 'xdata:UserSendMsg';
+        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
+        var_dump($code);
+    }
     /**
      * 获取用户数据
      * @return array
@@ -60,9 +82,54 @@ class Goods extends Controller
             return [9, '未登录', 'x'];
         }
         [$state, $info, $this->uuid] = UserTokenService::check($this->type, $token);
+        if($info == '请重新登录，登录认证无效'){
+            return [9, '登录无效', 'x'];
+        }
         return [$state, $info, $this->uuid];
     }
+    //绑定用户
+    //初始化
+    public function init()
+    {
+        $data = $this->_vali(['client_id.require' => '请填写cid']);
+        $this->bind();
 
+    }
+
+    private function bind()
+    {
+        $user = ($this->isuser());
+
+        if($user[0] == 9){
+            //如果有登录，绑定id = x
+            $uid = 'x';
+        }else{
+            //如果有登录，绑定id
+            $uid = $user[2];
+        }
+        //client_v 鉴权 t time
+        $data = $this->_vali([
+            'client_id.require' => '请填写cid',
+            'client_v.require' => 'error',
+            't.require' => 'error'
+        ]);
+        if(time()-$data['t'] > 5){
+            // $this->error('绑定失败', [], 0);
+        }
+        Gateway::bindUid($data['client_id'], $uid);
+        
+        //缓存用户id
+        $v = [];
+        Cache::store('file')->set('user_arr',$v);
+        $user = Cache::store('file')->get('user_arr');
+        array_push($user,$uid);
+        $user = array_unique($user);
+        Cache::store('file')->set('user_arr',$user);
+
+        // $message = '{"type":"send_to_uid","uid":"xxxxx", "message":"...."}';
+        // $req_data = json_decode($message, true);
+        // Gateway::sendToClient($data['client_id'], $message);
+    }
 
 
 
@@ -89,7 +156,7 @@ class Goods extends Controller
     {
         $user = ($this->isuser());
         //未登录
-        if($user[0] == 0)
+        if($user[0] == 9)
         {
             $this->error('登录失败', [], 401);
         }
@@ -113,7 +180,7 @@ class Goods extends Controller
         $data = $this->_vali(['pid.require' => '请选择产品']);
         $user = ($this->isuser());
         //未登录
-        if($user[0] == 0)
+        if($user[0] == 9)
         {
             $this->error('登录失败', [], 401);
         }
@@ -162,6 +229,8 @@ class Goods extends Controller
      */
     public function getGoods()
     {
+        var_dump($this->client_id);die;
+        $this->bind();
         $user = ($this->isuser());
         //未登录
         if($user[0] == 9)

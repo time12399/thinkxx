@@ -11,7 +11,7 @@
 // | 会员免费 ( https://thinkadmin.top/vip-introduce )
 // +----------------------------------------------------------------------
 // | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin1
 // +----------------------------------------------------------------------
 
 use app\data\command\OrderClean;
@@ -26,6 +26,9 @@ use app\data\service\UserRebateService;
 use think\admin\Library;
 use think\Console;
 
+
+use app\data\command\UserSendMsg;
+
 if (Library::$sapp->request->isCli()) {
     // 动态注册操作指令
     Console::starting(function (Console $console) {
@@ -33,7 +36,8 @@ if (Library::$sapp->request->isCli()) {
         $console->addCommand(UserAgent::class);
         $console->addCommand(UserAmount::class);
         $console->addCommand(UserUpgrade::class);
-        $console->addCommand(UserTransfer::class);
+
+        $console->addCommand(UserSendMsg::class);
     });
 } else {
     // 注册订单支付处理事件
