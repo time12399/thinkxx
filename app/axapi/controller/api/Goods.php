@@ -82,7 +82,8 @@ class Goods extends Controller
             return [9, '未登录', 'x'];
         }
         [$state, $info, $this->uuid] = UserTokenService::check($this->type, $token);
-        if($info == '请重新登录，登录认证无效'){
+
+        if($info=='请重新登录，登录认证失效' || $info=='请重新登录，登录认证无效'){
             return [9, '登录无效', 'x'];
         }
         return [$state, $info, $this->uuid];
@@ -98,7 +99,7 @@ class Goods extends Controller
 
     private function bind()
     {
-        $user = ($this->isuser());
+        $user = $this->isuser();
 
         if($user[0] == 9){
             //如果有登录，绑定id = x
@@ -154,7 +155,7 @@ class Goods extends Controller
     //搜索产品--默认返回全部
     public function searchGoods()
     {
-        $user = ($this->isuser());
+        $user = $this->isuser();
         //未登录
         if($user[0] == 9)
         {
@@ -178,7 +179,7 @@ class Goods extends Controller
     public function addGoods()
     {
         $data = $this->_vali(['pid.require' => '请选择产品']);
-        $user = ($this->isuser());
+        $user = $this->isuser();
         //未登录
         if($user[0] == 9)
         {
@@ -201,9 +202,9 @@ class Goods extends Controller
     public function delGoods()
     {
         $data = $this->_vali(['pid.require' => '请选择产品']);
-        $user = ($this->isuser());
+        $user = $this->isuser();
         //未登录
-        if($user[0] == 0)
+        if($user[0] == 9)
         {
             $this->error('登录失败', [], 401);
         }
@@ -229,9 +230,7 @@ class Goods extends Controller
      */
     public function getGoods()
     {
-        var_dump($this->client_id);die;
-        $this->bind();
-        $user = ($this->isuser());
+        $user = $this->isuser();
         //未登录
         if($user[0] == 9)
         {
@@ -240,12 +239,22 @@ class Goods extends Controller
             // $result = $query->where(['deleted' => 0, 'status' => 1])->order('sort desc,id desc')->field('id,sort,name,k_low,k_top,k_status,k_percent')->page(true, false, false, 2);
             // if (count($result['list']) > 0) GoodsService::bindData($result['list']);
             
-            $list = Db::table('shop_goods')
+            /*$list = Db::table('shop_goods')
                 ->alias('b')
                 ->leftjoin('shop_data a','a.media_id = b.id')
                 ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,a.date,a.date,a.now_buy,a.now_sell')
                 ->cache(true,60)
                 ->paginate($this->page);
+                */
+                $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
+                        FROM shop_goods u
+                        JOIN (
+                            SELECT media_id, MAX(time) AS max_time
+                            FROM shop_data
+                            GROUP BY media_id
+                        ) t ON u.id = t.media_id
+                        JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
+            $list = Db::query($sql);
 
             $this->success('获取商品数据', $list);
         }
@@ -255,7 +264,7 @@ class Goods extends Controller
             // $list = DataUserMyCollect::with('ShopGoods')->select();
             // SELECT a.*,b.* FROM data_user_my_collect as a LEFT JOIN shop_goods as b ON a.ppid = b.id
             // var_dump($list);
-
+            /*
             $list = Db::table('data_user_my_collect')
                 ->alias('a')
                 ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,c.date,c.date,c.now_buy,c.now_sell')
@@ -264,8 +273,22 @@ class Goods extends Controller
                 ->leftjoin('shop_data c','c.media_id = b.id')
                 ->where(['a.is_deleted' => 0])
                 ->cache(true,60)
-                ->paginate($this->page);
+                ->paginate($this->page);*/
 
+                $sql = '
+                SELECT my.pid as myid , u.id , u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
+                FROM shop_goods u
+                JOIN (
+                    SELECT media_id, MAX(time) AS max_time
+                    FROM shop_data
+                    GROUP BY media_id
+                ) t ON u.id = t.media_id
+                JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time
+								join data_user_my_collect my on my.pid = u.id where my.uid = ? order by my.sort desc, my.id desc
+                ';
+
+            $list = Db::query($sql,[$user[2]]);
+            
             $this->success('获取商品数据', $list);
         }else{
             $this->error('用户登录失败！', '{-null-}', 401);
