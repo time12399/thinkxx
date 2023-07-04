@@ -12,6 +12,7 @@
 // +----------------------------------------------------------------------
 // | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | 后台登录使用的token
 // +----------------------------------------------------------------------
 
 namespace app\data\service;

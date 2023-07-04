@@ -232,21 +232,21 @@ class Goods extends Controller
     {
         $user = $this->isuser();
         //未登录
-        if($user[0] == 9)
-        {
+        // if($user[0] == 9)
+        // {
             // 商品数据处理
             // $query = ShopGoods::mQuery()->like('name,marks,cateids,payment')->equal('code,vip_entry');
             // $result = $query->where(['deleted' => 0, 'status' => 1])->order('sort desc,id desc')->field('id,sort,name,k_low,k_top,k_status,k_percent')->page(true, false, false, 2);
             // if (count($result['list']) > 0) GoodsService::bindData($result['list']);
             
-            /*$list = Db::table('shop_goods')
+            /* $list = Db::table('shop_goods')
                 ->alias('b')
                 ->leftjoin('shop_data a','a.media_id = b.id')
                 ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,a.date,a.date,a.now_buy,a.now_sell')
                 ->cache(true,60)
                 ->paginate($this->page);
                 */
-                $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
+            /* $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
                         FROM shop_goods u
                         JOIN (
                             SELECT media_id, MAX(time) AS max_time
@@ -254,10 +254,8 @@ class Goods extends Controller
                             GROUP BY media_id
                         ) t ON u.id = t.media_id
                         JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
-            $list = Db::query($sql);
-
-            $this->success('获取商品数据', $list);
-        }
+            $list = Db::query($sql); */
+        // }
 
         if($user[0] == 1){
             //已登录-查看自己的收藏
@@ -288,11 +286,53 @@ class Goods extends Controller
                 ';
 
             $list = Db::query($sql,[$user[2]]);
+            $data_info = '用户商品数据';
             
-            $this->success('获取商品数据', $list);
         }else{
-            $this->error('用户登录失败！', '{-null-}', 401);
+            // $this->error('用户登录失败！', '{-null-}', 401);
+            $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
+                        FROM shop_goods u
+                        JOIN (
+                            SELECT media_id, MAX(time) AS max_time
+                            FROM shop_data
+                            GROUP BY media_id
+                        ) t ON u.id = t.media_id
+                        JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
+            $list = Db::query($sql);
+            $data_info = '全部商品数据';
         }
+        function str_k_v($srt){
+            [$a,$b] = explode('.',$srt);
+
+            if(strlen($a) >= 3){
+                $v1 = $a.'.';
+                
+                if(strlen($b) >2){
+                    $v2 = substr($b,0,2);
+                    $v3 = substr($b,2,1);
+                }else{
+                    $v2 = $b;
+                    $v3 = 0;
+                }
+
+            }else{
+                $v1 = $a.'.'.substr($b,0,2);
+                $v2 = substr($b,2,2);
+                $v3 = substr($b,4,1);
+            }
+            if(!$v3){
+                $v3 = 0;
+            }
+            return [$v1,$v2,$v3];
+        }
+        foreach($list as $a=>$v){
+            $list[$a]['now_sell_arr'] = str_k_v($v['now_sell']);
+            $list[$a]['now_buy_arr'] = str_k_v($v['now_buy']);
+            $list[$a]['time_v'] = date('H:i:s');
+            $list[$a]['time_r_v'] = rand(5,100);
+            $list[$a]['left_v'] = '-'.rand(1,100);
+        }
+        $this->success($data_info, ['data'=>$list]);
     }
 
     /**

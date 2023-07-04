@@ -12,6 +12,7 @@
 // +----------------------------------------------------------------------
 // | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
 // | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | 用户登录使用的token
 // +----------------------------------------------------------------------
 
 namespace app\axapi\service;
@@ -29,9 +30,11 @@ class UserTokenService extends Service
 
     /**
      * 认证有效时间
+     * 86400*3 = 259200
+     * 7200
      * @var integer
      */
-    private static $expire = 7200;
+    private static $expire = 259200;
 
     /**
      * 检查 TOKEN 是否有效
