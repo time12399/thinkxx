@@ -331,6 +331,9 @@ class Goods extends Controller
             $list[$a]['time_v'] = date('H:i:s');
             $list[$a]['time_r_v'] = rand(5,100);
             $list[$a]['left_v'] = '-'.rand(1,100);
+
+            $list[$a]['now_sell_status'] = 0;
+            $list[$a]['now_buy_status'] = 0;
         }
         $this->success($data_info, ['data'=>$list]);
     }
