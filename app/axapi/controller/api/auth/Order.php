@@ -74,7 +74,20 @@ class Order extends Auth
         $this->success('获取订单数据成功！', $result);
     }
 
-
+    /**
+     * @return void
+     * 获取当前交易中的订单
+     */
+    public function getMyNowOrder()
+    {
+        $result = ShopOrder::where('uuid',$this->uuid)
+            ->alias('a')
+            ->field('a.id,b.name,a.k_buy_status,a.k_iswin,a.k_money,a.create_price,a.finish_price,a.user_time_end,a.k_num')
+            ->leftJoin('shop_goods b','a.ppid=b.id')
+            ->order('a.id asc')
+            ->paginate($this->page);
+        $this->success('获取订单数据成功！', $result);
+    }
     /**
      * @return void
      * @throws \think\db\exception\DbException
@@ -84,7 +97,7 @@ class Order extends Auth
     {
         $result = ShopOrder::where('uuid',$this->uuid)
             ->alias('a')
-            ->field('a.id,b.name,a.k_status,a.k_buy_status,a.k_iswin,a.k_money,a.create_price,a.finish_price,a.user_time_end,a.k_num')
+            ->field('a.id,b.name,a.k_buy_status,a.k_iswin,a.k_money,a.create_price,a.finish_price,a.user_time_end,a.k_num')
             ->leftJoin('shop_goods b','a.ppid=b.id')
             ->order('a.id asc')
             ->paginate($this->page);
