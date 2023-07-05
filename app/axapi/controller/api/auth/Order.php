@@ -56,6 +56,7 @@ class Order extends Auth
         if (empty($this->user['status'])) {
             $this->error('账户已被冻结，不能操作订单数据哦！');
         }
+        $this->page=10;
     }
 
     /**
@@ -73,8 +74,24 @@ class Order extends Auth
         $this->success('获取订单数据成功！', $result);
     }
 
+
     /**
-     * 
+     * @return void
+     * @throws \think\db\exception\DbException
+     * 历史订单-历史-价位
+     */
+    public function getMyOrder()
+    {
+        $result = ShopOrder::where('uuid',$this->uuid)
+            ->alias('a')
+            ->field('a.id,b.name,a.k_status,a.k_buy_status,a.k_iswin,a.k_money,a.create_price,a.finish_price,a.user_time_end,a.k_num')
+            ->leftJoin('shop_goods b','a.ppid=b.id')
+            ->order('a.id asc')
+            ->paginate($this->page);
+        $this->success('获取订单数据成功！', $result);
+    }
+    /**
+     * 提交订单
      */
     public function addTrade()
     {
@@ -83,7 +100,8 @@ class Order extends Auth
             'time.require' => '请填写请求时间',
             'status.require' => '请填写状态',
             'price.require' => '请填写价格',
-            'myamount_.require'=>'请选择手数'
+            'myamount_.require'=>'请选择手数',
+            'type.require'=>'请选择手数'
         ]);
         // 检查用户状态
         $this->checkUserStatus();
@@ -121,9 +139,9 @@ class Order extends Auth
                 'payment_amount'  => $myamount_,
                 'amount_discount'  => $myamount_,
                 'payment_status'  => 1,
-                'create_price'  => 1,
-                'status'  => 4,
                 'create_price'  => $data['price'],
+                'k_buy_status'  => $data['status'],
+                'status'  => 4,
                 'k_money'=>0,
                 'k_iswin'=>0,
                 'k_status'=>1
