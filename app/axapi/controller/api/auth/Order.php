@@ -35,6 +35,11 @@ use stdClass;
 use think\admin\extend\CodeExtend;
 use think\exception\HttpResponseException;
 
+
+
+use app\axapi\service\UserRebateService;
+
+
 /**
  * 用户订单数据接口
  * Class Order
@@ -69,13 +74,92 @@ class Order extends Auth
     }
 
     /**
+     * 
+     */
+    public function addTrade()
+    {
+        $data = $this->_vali([
+            'pid.require' => '产品不存在',
+            'time.require' => '请填写请求时间',
+            'status.require' => '请填写状态',
+            'price.require' => '请填写价格',
+            'myamount_.require'=>'请选择手数'
+        ]);
+        // 检查用户状态
+        $this->checkUserStatus();
+
+        // 余额不足
+        $myamount_  = $data['myamount_']*1000;
+        $amount = DataUser::value('my_total');
+        if($amount<$myamount_) $this->error('余额不足');
+        
+        $goodsInfo = ShopGoods::mk()->where(['id' =>$data['pid'], 'status' => 1, 'deleted' => 0])->find();
+
+        if (empty($goodsInfo)) $this->error('商品查询异常');
+
+        if($goodsInfo['isopen'] == 0){
+            $this->error('已休市');
+        }
+        $today = date("N");
+        // echo $today;
+        [$open,$close]= explode('~',$goodsInfo['opentime_'.$today]);
+        $now_time = date('H:i:s');
+        if($open<$now_time && $now_time<$close){
+            //开始处理下单
+            $order['uuid'] = $this->uuid;
+            $order['order_no'] = CodeExtend::uniqidDate(18, 'N');
+
+            
+            $order = [
+                'uuid'            => $order['uuid'],
+                'ppid'            => $goodsInfo['id'],
+                'ppcode'          => $goodsInfo['code'],
+                'order_no'        => $order['order_no'],
+                'amount_real'     => $myamount_,
+                'amount_total'    => $myamount_,
+                'amount_goods'     => $myamount_,
+                'payment_amount'  => $myamount_,
+                'amount_discount'  => $myamount_,
+                'payment_status'  => 1,
+                'create_price'  => 1,
+                'status'  => 4,
+                'create_price'  => $data['price'],
+                'k_money'=>0,
+                'k_iswin'=>0,
+                'k_status'=>1
+            ];
+
+            try {
+                // 写入商品数据
+                $this->app->db->transaction(function () use ($order,$myamount_) {
+                    ShopOrder::mk()->insert($order);
+                    // 减少余额
+                    DataUser::where('id',$this->uuid)->dec('my_total',$myamount_)->update();
+                });
+                // 触发订单创建事件
+                $this->app->event->trigger('ShopOrderCreate', $order['order_no']);
+                // 组装订单商品数据
+                // $order['items'] = $items;
+                // 返回处理成功数据
+                $this->success('商品下单成功',[]);
+            } catch (HttpResponseException $exception) {
+                throw $exception;
+            } catch (Exception $exception) {
+                $this->error("商品下单失败，{$exception->getMessage()}");
+            }
+
+        }else{
+            $this->error('已休市');
+        }
+    }
+    /**
      * 用户创建订单
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      */
     public function add()
-    {
+    {die;
         // 检查用户状态
         $this->checkUserStatus();
         // 商品规则
@@ -111,7 +195,7 @@ class Order extends Auth
             'payment_status'  => 1,
             'create_price'  => 1,
             'status'  => 4,
-        ]; 
+        ];
         try {
             // 写入商品数据
             $this->app->db->transaction(function () use ($order) {

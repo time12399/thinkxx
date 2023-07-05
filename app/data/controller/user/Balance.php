@@ -153,6 +153,8 @@ class Balance extends Controller
         $data = $this->_vali(['uuid.require' => '用户UID不能为空！']);
         $this->user = DataUser::mk()->where(['id' => $data['uuid']])->find();
         if (empty($this->user)) $this->error('待充值的用户不存在！');
+        $networkArr = SystemBase::where('type','recharge_pay')->select();
+        $this->assign('networkArr',$networkArr);
         DataUserBalance::mForm('form');
     }
 

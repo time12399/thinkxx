@@ -9,7 +9,7 @@
 {block name="content"}
 <div class="layui-tab layui-tab-card">
     <ul class="layui-tab-title notselect">
-        {php}$types = ['ta' => '全部订单', 't2' => '待平仓', 't3' => '已平仓'];{/php}
+        {php}$types = ['ta' => '全部订单', 't1' => '待平仓', 't2' => '已平仓'];{/php}
         {foreach $types as $k=>$v}{if isset($type) and 't'.$type eq $k}
         <li class="layui-this" data-open="{:url('index')}?type={$k}">{$v}<sup class="layui-badge border-radius">{$total[$k]??0}</sup></li>
         {else}
@@ -79,14 +79,23 @@
                             已支付 <b>{$vo.payment_amount+0}</b> 元
                         </div>
                         <div>下单时间：<span class="color-text">{$vo.create_at|format_datetime}</span></div>
+                        <div>平仓时间：<span class="color-text">{$vo.end_at|format_datetime}</span></div>
 
                     </div>
                 </td>
                 <td class="nowrap">
-                    {foreach $vo.items as $g}
                     <div class="inline-block text-middle">
                         <div class="sub-strong-blue">
-                            产品：<b>{$g.goods_name|default=''}</b>
+                            产品：<b>
+                                {php}
+                                if(isset($items[$vo['ppid']]))
+                                {
+                                    echo $items[$vo['ppid']];
+                                }else{
+                                     echo '--ERROR--';
+                                }  
+                                {/php}
+                            </b>
                         </div>
                         <div class="sub-strong-blue">
                             创建价格：<b>{$vo.create_price|default=''}</b>
@@ -94,8 +103,11 @@
                         <div class="sub-strong-blue">
                             结束价格：<b>{$g.finish_price|default=''}</b>
                         </div>
+
+                        <div>用户地区下单时间：<span class="color-text">{$vo.user_time_start|format_datetime}</span></div>
+                        <div>用户地区平仓时间：<span class="color-text">{$vo.user_time_end|format_datetime}</span></div>
+
                     </div>
-                    {/foreach}
                 </td>
 
                 <td class="nowrap">

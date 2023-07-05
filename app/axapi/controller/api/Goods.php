@@ -66,6 +66,11 @@ class Goods extends Controller
         $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
         var_dump($code);
     }
+    protected function LS($n){
+        if($n){
+            return DB::table($n)->getlastsql();
+        }
+    }
     /**
      * 获取用户数据
      * @return array
@@ -97,12 +102,36 @@ class Goods extends Controller
 
     }
 
+
+    //按id返回产品交易信息
+    public function findGoodsId()
+    {
+        $data = $this->_vali([
+            'pid.require' => '请填写产品id'
+        ]);
+        $user = $this->isuser();
+        if($user[0] == 9){
+            $this->error('登录失败', [], 401);
+        }
+        //返回最新数据
+        $f = Db::table('shop_data')->where('a.media_id',$data['pid'])
+        ->alias('a')
+        ->field('b.id,b.name,b.title,a.now_buy,a.now_sell')
+        ->leftjoin('shop_goods b','b.id = a.media_id')
+        ->order('id desc')->find();
+        $f['now_buy_status']=0;
+        $f['now_sell_status']=0;
+        $f['now_buy'] = $this->str_k_v($f['now_buy']);
+        $f['now_sell'] = $this->str_k_v($f['now_sell']);
+        $this->success('操作成功',$f);
+    }
+
     private function bind()
     {
         $user = $this->isuser();
 
         if($user[0] == 9){
-            //如果有登录，绑定id = x
+            //如果5有登录，绑定id = x
             $uid = 'x';
         }else{
             //如果有登录，绑定id
@@ -220,6 +249,31 @@ class Goods extends Controller
         }else{
             $this->error('操作失败', [], 2);
         }
+    }
+
+    protected function str_k_v($srt){
+        [$a,$b] = explode('.',$srt);
+
+        if(strlen($a) >= 3){
+            $v1 = $a.'.';
+            
+            if(strlen($b) >2){
+                $v2 = substr($b,0,2);
+                $v3 = substr($b,2,1);
+            }else{
+                $v2 = $b;
+                $v3 = 0;
+            }
+
+        }else{
+            $v1 = $a.'.'.substr($b,0,2);
+            $v2 = substr($b,2,2);
+            $v3 = substr($b,4,1);
+        }
+        if(!$v3){
+            $v3 = 0;
+        }
+        return [$v1,$v2,$v3];
     }
 
     /**

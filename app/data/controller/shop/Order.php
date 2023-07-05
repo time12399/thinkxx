@@ -27,6 +27,7 @@ use think\admin\Controller;
 use think\admin\extend\CodeExtend;
 use think\exception\HttpResponseException;
 
+use app\axapi\model\ShopGoods;
 /**
  * 订单数据管理
  * Class Order
@@ -61,9 +62,19 @@ class Order extends Controller
     {
         $this->title = '订单数据管理';
         // 状态数据统计
-        $this->total = ['t0' => 0, 't1' => 0, 't2' => 0, 't3' => 0, 't4' => 0, 't5' => 0, 't6' => 0, 'ta' => 0];
-        foreach (ShopOrder::mk()->field('status,count(1) total')->group('status')->cursor() as $vo) {
-            [$this->total["t{$vo['status']}"] = $vo['total'], $this->total["ta"] += $vo['total']];
+        $this->total = ['t1' => 0, 't2' => 0, 'ta' => 0];
+        $a = 1;
+        $b = [];
+        foreach (ShopOrder::mk()->field('k_status,count(1) total')->group('k_status')->cursor() as $vo) {
+            $b[$a]= $vo['total'];
+            [$this->total["t{$vo['k_status']}"] = $vo['total'], $this->total["ta"] += $vo['total']];
+            $a++;
+        }
+        if(isset($b[1])){
+            $this->total['t1'] = $b[1];
+        }
+        if(isset($b[2])){
+            $this->total['t2'] = $b[2];
         }
 
         // 订单列表查询
@@ -85,7 +96,7 @@ class Order extends Controller
 
         // 列表选项卡
         if (is_numeric($this->type = trim(input('type', 'ta'), 't'))) {
-            $query->where(['status' => $this->type]);
+            $query->where(['k_status' => $this->type]);
         }
 
         // 分页排序处理
@@ -103,12 +114,14 @@ class Order extends Controller
     {
         UserAdminService::buildByUid($data);
         UserAdminService::buildByUid($data, 'puid1', 'from');
-        OrderService::buildData($data);
-        foreach ($data as &$vo) {
-            if (!is_null($vo['payment_type']) and '' != $vo['payment_type']) {
-                $vo['payment_name'] = PaymentService::name($vo['payment_type']);
-            }
+
+        $ppid=array_unique(array_column($data, 'ppid'));
+        $items1 = ShopGoods::mk()->whereIn('id', $ppid)->column('*', 'id');
+        $items2 = [];
+        foreach($items1 as $v){
+            $items2[$v['id']]=$v['name'];
         }
+        $this->assign('items',$items2);
     }
 
     /**

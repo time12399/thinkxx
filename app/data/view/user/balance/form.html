@@ -39,6 +39,17 @@
         </label>
 
         <div class="layui-form-item label-required-prev">
+            <span class="help-label"><b>充值网络</b>Upgrade</span>
+            <select class="layui-select" name="network" lay-filter="upgrade">
+                {foreach $networkArr as $networkv}
+                <option value="{$networkv.id}">-- {$networkv.name} --</option>
+                {/foreach}
+            </select>
+            <span class="help-block">请选择目标升级等级，当用户低于当前等级时会进行用户升级操作</span>
+        </div>
+
+
+        <!-- <div class="layui-form-item label-required-prev">
             <span class="help-label"><b>升级用户等级</b>Upgrade</span>
             <select class="layui-select" name="upgrade" lay-filter="upgrade">
                 <option value="0">-- 不升级 --</option>
@@ -49,7 +60,7 @@
                 {/if}{/foreach}
             </select>
             <span class="help-block">请选择目标升级等级，当用户低于当前等级时会进行用户升级操作</span>
-        </div>
+        </div> -->
 
         <div class="layui-form-item relative block">
             <span class="help-label"><b>余额充值备注</b>Remark</span>
