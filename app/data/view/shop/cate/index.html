@@ -29,7 +29,7 @@
                 {checkbox: true, field: 'sps'},
                 {field: 'sort', title: '排序权重', width: 100, align: 'center', sort: true, templet: '#SortInputTpl'},
                 {
-                    field: 'name', title: '分类名称', minWidth: 220, templet: function (d) {
+                    field: 'name', title: '分类名称',align: 'center', minWidth: 220, templet: function (d) {
                         return layui.laytpl('<span class="color-desc">{{d.spl}}</span>{{d.name}}').render(d);
                     }
                 },

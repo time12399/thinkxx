@@ -28,16 +28,16 @@ use app\axapi\controller\api\Goods;
 
 
 /**
- * 发送数据
+ * 生成数据
  * Class UserBalance
  * @package app\data\command
  */
-class UserSendMsg extends Command
+class ShopData extends Command
 {
     protected function configure()
     {
-        $this->setName('xdata:UserSendMsg');
-        $this->setDescription('发送数据');
+        $this->setName('xdata:ShopData');
+        $this->setDescription('生成数据');
     }
 
     /**
@@ -49,7 +49,7 @@ class UserSendMsg extends Command
     protected function execute(Input $input, Output $output)
     {
         $g = new Goods($this->app);
-        $g->sendMemberMsg();
-        $this->setQueueSuccess(date('Y-m-d H:i:s')."发送数据");
+        $g->sendShopData();
+        $this->setQueueSuccess(date('Y-m-d H:i:s')."生成数据");
     }
 }

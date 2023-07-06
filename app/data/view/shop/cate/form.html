@@ -20,6 +20,13 @@
             <span class="help-block"><b>必填，</b>请填写商品分类名称，建议字符不要太长，一般 4-6 个汉字</span>
         </label>
 
+        <label class="layui-form-item relative block">
+            <span class="help-label"><b>简介</b></span>
+            <input class="layui-input" name="name" placeholder="请输入简介" required value='{$vo.name|default=""}'>
+            <span class="help-block"><b>必填，</b>简介</span>
+        </label>
+
+
         <div class="layui-form-item relative block">
             <span class="help-label"><b>商品分类图标</b>Category Cover</span>
             <label class="relative block">
@@ -29,11 +36,11 @@
             <span class="help-block"><b>可选，</b>请上传商品分类图标，需要是 http 可访问的图片资源链接</span>
         </div>
 
-        <label class="layui-form-item relative block">
+        <!-- <label class="layui-form-item relative block">
             <span class="color-green font-w7">商品分类描述</span>
             <span class="color-desc margin-left-5">Category Remark</span>
             <textarea class="layui-textarea" name="remark" placeholder="请输入分类描述">{$vo.remark|default=''}</textarea>
-        </label>
+        </label> -->
     </div>
 
     <div class="hr-line-dashed"></div>

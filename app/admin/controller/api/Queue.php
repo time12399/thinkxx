@@ -81,11 +81,35 @@ class Queue extends Controller
         }
     }
 
+
+    
+    public function socket_s()
+    {
+        $title = '异步发送消息';
+        $command = 'xdata:UserSendMsg';
+        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
+        $this->success('socket任务已启动！');
+    }
+    public function status()
+    {
+        try {
+            $message = $this->app->console->call('xadmin:queue', ['status'])->fetch();
+            if (preg_match('/process.*?\d+.*?running/', $message)) {
+                echo "<span class='color-green pointer' data-tips-text='{$message}'>已启动</span>";
+            } else {
+                echo "<span class='color-red pointer' data-tips-text='{$message}'>未启动</span>";
+            }
+        } catch (\Error|\Exception $exception) {
+            echo "<span class='color-red pointer' data-tips-text='{$exception->getMessage()}'>异 常</span>";
+        }
+    }
+
+
     /**
      * 检查监听服务
      * @login true
      */
-    public function status()
+    public function status_old()
     {
         if (AdminService::isSuper()) try {
             $message = $this->app->console->call('xadmin:queue', ['status'])->fetch();

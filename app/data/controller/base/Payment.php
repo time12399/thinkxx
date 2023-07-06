@@ -109,7 +109,8 @@ class Payment extends Controller
             $data['content'] = json_decode($data['content'] ?? '[]', true) ?: [];
         } else {
             if (empty($data['type'])) $this->error('请选择支付通道并配置参数！');
-            if (empty($data['cover'])) $this->error('请上传支付方式图标！');
+            // if (empty($data['cover'])) $this->error('请上传支付方式图标！');
+            $data['cover'] = 1;
             $data['content'] = json_encode($this->request->post() ?: [], JSON_UNESCAPED_UNICODE);
         }
     }

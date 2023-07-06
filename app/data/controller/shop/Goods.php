@@ -150,7 +150,7 @@ class Goods extends Controller
             // $data['data_items'] = json_encode(ShopGoodsItem::mk()->where(['goods_code' => $data['code']])->column($fields, 'goods_spec'), JSON_UNESCAPED_UNICODE);
             $data['data_items'] = '';
         } elseif ($this->request->isPost()) {
-            if (empty($data['cover'])) $this->error('商品图片不能为空！');
+            // if (empty($data['cover'])) $this->error('商品图片不能为空！');
             // if (empty($data['slider'])) $this->error('轮播图片不能为空！');
             // if (empty($data['payment'])) $this->error('支付方式不能为空！');
             // if (!empty($data['sort'])) $data['sort'] = $data['sort'];
