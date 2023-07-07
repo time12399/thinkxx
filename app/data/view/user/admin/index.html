@@ -80,8 +80,7 @@
                     </div>
                 </td>
                 <td class="nowrap">
-                    <a class="layui-btn layui-btn-sm layui-btn-primary" data-iframe="{:url('parent')}?uuid={$vo.id}" data-width="900px">修改</a>
-
+                    <a class="layui-btn layui-btn-sm layui-btn-primary" data-modal="{:url('edit')}?uuid={$vo.id}" data-width="900px">修改</a>
                     <!--{if auth("parent") and false}-->
                     <a class="layui-btn layui-btn-sm layui-btn-primary" data-iframe="{:url('parent')}?uuid={$vo.id}" data-width="900px">修改上级</a>
                     <!--{/if}-->

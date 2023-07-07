@@ -22,6 +22,13 @@ use app\axapi\service\UserRebateService;
 use app\axapi\service\UserTransferService;
 use think\admin\extend\CodeExtend;
 
+
+
+use think\facade\Db;
+use Exception;
+use think\exception\HttpResponseException;
+
+
 /**
  * 用户提现接口
  * Class Transfer
@@ -35,8 +42,93 @@ class Transfer extends Auth
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      */
-    public function add()
+    public function addWithdraw()
     {
+        // 检查用户状态
+        $this->checkUserStatus();
+        // 接收输入数据
+        $data = $this->_vali([
+            'moeny_type.require'   => '提现方式不能为空！',
+            'money_class_id.require' => '货币类型不能为空',
+            'money_address_id.require' => '请选择提现地址',
+            'money.require' => '提现金额不能为空！',
+        ]);
+        $data = [
+            'uuid'=>$this->uuid,
+            'type'=>$data['moeny_type'],
+            'date'=>time(),
+            'status'=>1,
+            'amount'=>$data['money']
+        ];
+        $data['code'] = CodeExtend::uniqidDate(20, 'T');
+
+        $DataUserBalance = new DataUserTransfer;
+        $my_total = Db::table('data_user')->where('id',$this->uuid)->value('my_total');
+        if($my_total < $data['amount']){
+            $this->error("可提现金额不足");
+        }
+        try {
+            // 给用户扣钱
+            // 新增提现订单
+            $this->app->db->transaction(function () use ($DataUserBalance,$data) {
+                Db::table('data_user')->where('id',$this->uuid)->dec('my_total',$data['amount'])->update();
+                $DataUserBalance->save($data);
+            });
+            $this->success('操作成功',[]);
+        } catch (HttpResponseException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            $this->error("操作失败，{$exception->getMessage()}");
+        }
+    }
+
+    /**
+     * @return void
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     * 提现回显信息
+     */
+    public function showWithdraw()
+    {
+        $data = $this->_vali([
+            'showWithdraw.require'   => '提现方式不能为空！',
+        ]);
+        if($data['showWithdraw'] == 1){
+            $list = Db::table('base_user_payment')
+                ->field('id,name')
+                ->where([
+                    'type'=>'withdraw_number',
+                    'status'=>1,
+                ])->order('sort desc')->order('id desc')->select();
+            $myList = Db::table('base_user_payment_address')
+                ->field('id,name,address')
+                ->where('type','number')
+                ->where('uuid',$this->uuid)
+                ->select();
+            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList]);
+        }else
+        if($data['showWithdraw'] == 2){
+            $list = Db::table('base_user_payment')
+                ->field('id,name')
+                ->where([
+                    'type'=>'withdraw_card',
+                    'status'=>1,
+                ])->order('sort desc')->order('id desc')->select();
+            $myList = Db::table('base_user_payment_address')
+                ->field('id,name,address')
+                ->where('type','card')
+                ->where('uuid',$this->uuid)
+                ->select();
+            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList]);
+        }else{
+            $data = $this->_vali([
+                'showWithdraw1.require'   => '提现方式不能为空！',
+            ]);
+        }
+    }
+    public function add()
+    {die;
         // 检查用户状态
         $this->checkUserStatus();
         // 接收输入数据

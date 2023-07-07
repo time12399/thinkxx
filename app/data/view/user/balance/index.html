@@ -8,7 +8,9 @@
 
 {block name="content"}
 <div class="think-box-notify">
-    <b>余额统计：</b>累计已充值余额 <b>{$balance.0|default=0.00|number_format}</b> 元，已使用 <b>{$balance.1|default=0.00|number_format}</b> 元，剩余可使用 <b>{$balance.0-$balance.1|number_format}</b> 元。
+    <b>余额统计：</b>累计已充值余额 <b>{$balance_listok+$balance_listis+$balance_listno|number_format}</b> 元，已通过 <b>{$balance_listok|number_format}</b> 元，已驳回 <b>{$balance_listno|number_format}元，待审核 <b>{$balance_listis|number_format}</b> 元。
+
+
 </div>
 <div class="think-box-shadow">
     {include file='user/balance/index_search'}
@@ -35,7 +37,7 @@
             <td class="nowrap">
                 <div class="headimg headimg-md" data-lazy-src="{$vo.user.headimg|default='__ROOT__/static/theme/img/headimg.png'}" data-tips-image></div>
                 <div class="inline-block">
-                    <div>用户昵称：<span class="color-text">{$vo.user.nickname|default='--'}</span></div>
+                    <div>id：<span class="color-text">{$vo.id|default='--'}</span></div>
                     <div>用户手机：<span class="color-text">{$vo.user.phone|default='--'}</span></div>
                     <div>用户等级：<span>[ <b class="color-red">VIP{$vo.user.vip_code}</b> ] <b class="color-red">{$vo.user.vip_name}</b></span></div>
                 </div>

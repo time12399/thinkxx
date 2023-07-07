@@ -78,7 +78,7 @@ class Order extends Auth
      * @return void
      * 获取当前交易中的订单
      */
-    public function getMyNowOrder()
+    public function getMyOrdernow()
     {
         $result = ShopOrder::where('uuid',$this->uuid)
             ->alias('a')

@@ -144,6 +144,31 @@ class Admin extends Controller
         $this->success('设为总部用户成功！');
     }
 
+    public function edit()
+    {
+        if ($this->request->isGet()) 
+        {
+            $data = $this->_vali(['uuid.require' => '用户UID不能为空！']);
+            $this->user = DataUser::mk()->where(['id' => $data['uuid']])->find();
+            if (empty($this->user)) $this->error('用户不存在！');
+            $this->assign('user',$this->user);
+            $this->fetch();
+        }
+        if($this->request->isPost())
+        {            
+            $data = $this->request->Post();
+            $da['phone'] = $data['phone'];
+            if($data['password']) $da['password'] = md5($data['password']);
+            if($data['my_total']) $da['my_total'] = $data['my_total'];
+            $m = DataUser::where('id',$data['uuid'])->update($da);
+            if($m){
+                $this->success('操作成功');
+            }else{
+                $this->error('修改失败');
+            }
+        }
+    }
+
     /**
      * 绑定上级代理
      * @auth true

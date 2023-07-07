@@ -7,34 +7,33 @@
         <label class="layui-form-item relative block">
             <span class="help-label"><b>支付方式名称</b>Payment Name</span>
             <input class="layui-input" maxlength="50" name="name" placeholder="请输入支付名称" required value="{$vo.name|default=''}"/>
-            <span class="help-block"><b>必填，</b>请填写支付方式名称，支付名称尽量不要重复，字符不要太长一般4-6个汉字</span>
+            <span class="help-block"><b>必填，</b>支付名称或支持币种，一般4-6个汉字</span>
         </label>
 
         <div class="layui-form-item">
-            <span class="help-label"><b>支付通道方式</b>Payment Channel</span>
+            <span class="help-label"><b>充值、提现</b>Payment Channel</span>
             <label class="block full-width">
-                {empty name='vo.type'}
                 <select name="type" class="layui-select" lay-filter="payment-type" lay-search>
-                    {foreach $payments as $k=>$v}{if isset($vo.type) and $vo.type eq $k}
-                    <option selected value="{$k}">{$v.name} ( {$v.allow} )</option>
-                    {else}
-                    <option value="{$k}">{$v.name} ( {$v.allow} )</option>
-                    {/if}{/foreach}
+                    {if isset($vo.type)}
+                    <option {if condition="$vo.type == 'balance'"} selected {/if} value="balance">充值</option>
+                    <option {if condition="$vo.type == 'withdraw_number'"} selected {/if}  value="withdraw_number">提现-数字货币</option>
+                    <option {if condition="$vo.type == 'withdraw_card'"} selected {/if}  value="withdraw_card">提现-银行卡</option>
+                    {else /}
+                    <option selected value="balance">充值</option>
+                    <option value="withdraw_number">提现-数字货币</option>
+                    <option value="withdraw_card">提现-银行卡</option>
+                    {/if}
                 </select>
-                {else}
-                <select name="type" class="layui-select" disabled lay-filter="payment-type">
-                    {foreach $payments as $k=>$v}{if isset($vo.type) and $vo.type eq $k}
-                    <option selected value="{$k}">{$v.name} ( {$v.allow} )</option>
-                    {else}
-                    <option value="{$k}">{$v.name} ( {$v.allow} )</option>
-                    {/if}{/foreach}
-                </select>
-                <input name="type" type="hidden" value="{$vo.type}">
-                {/empty}
-                <span class="help-block"><b>必选，</b>请选择预置的支付方式，支付通道创建之后不能修改，请谨慎选择并配置参数</span>
+                <span class="help-block"><b>必选，</b>选择充值或者提现</span>
             </label>
         </div>
 
+        <label class="layui-form-item relative block">
+            <span class="help-label"><b>充值地址</b>Payment Name</span>
+            <input class="layui-input" maxlength="50" name="address" placeholder="请输入地址" value="{$vo.address|default=''}"/>
+            <span class="help-block"><b></b>钱包地址</span>
+        </label>
+        
         <div class="layui-hide" data-payment-type="wechat">{include file='base/payment/form_wechat'}</div>
         <div class="layui-hide" data-payment-type="alipay">{include file='base/payment/form_alipay'}</div>
         <div class="layui-hide" data-payment-type="joinpay">{include file='base/payment/form_joinpay'}</div>

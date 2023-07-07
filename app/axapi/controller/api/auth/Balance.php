@@ -53,7 +53,7 @@ class Balance extends Auth
         if($m){
             $this->success('操作成功');
         }else{
-            $this->error('操作成功','{}',0);
+            $this->error('操作失败','{}',0);
         }
     }
 

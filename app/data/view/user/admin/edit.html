@@ -1,0 +1,44 @@
+<form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card">
+    <div class="layui-card-body padding-left-40">
+        
+        <label class="layui-form-item">
+            <span class="help-label"><b>账号</b></span>
+            <input class="layui-input" maxlength="20" name="phone"  required value="{$user.phone|default='后台余额充值'}">
+        </label>
+
+
+        <label class="layui-form-item">
+            <span class="help-label"><b>密码</b></span>
+            <input class="layui-input" maxlength="20" name="password" >
+            <span class="help-label">不修改留空</span>
+
+        </label>
+
+
+        <label class="layui-form-item">
+            <span class="help-label"><b>余额</b></span>
+            <input type="number" class="layui-input" maxlength="100" name="my_total" placeholder="请输入余额充值名称" >
+            <span class="help-label">不修改留空</span>
+
+        </label>
+
+
+
+    </div>
+
+    <div class="hr-line-dashed"></div>
+    <input name='uuid' type='hidden' value='{$user.uuid|default=$user.id}'>
+    {notempty name='vo.id'}<input name='id' type='hidden' value='{$user.id}'>{/notempty}
+
+    <div class="layui-form-item text-center">
+        <button class="layui-btn" type='submit'>保存数据</button>
+        <button class="layui-btn layui-btn-danger" data-close data-confirm="确定要取消编辑吗？" type='button'>取消编辑</button>
+    </div>
+</form>
+
+<style>
+    .WechatUserHead {
+        width: 138px !important;
+        height: 138px !important;
+    }
+</style>

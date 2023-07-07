@@ -80,7 +80,7 @@
             <!-- 'transfer_banks' => '线下转账到银行卡账户' -->
 
             {if $vo.status eq 1}
-            {php} $types = [0=>'拒绝提现', 1=>'等待审核', 2=>'审核通过']; {/php}
+            {php} $types = [0=>'拒绝提现', 1=>'等待审核', 4=>'审核通过']; {/php}
             {/if}
 
             {if $vo.status eq 2}

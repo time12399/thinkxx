@@ -33,6 +33,7 @@ use think\admin\model\SystemBase;
 
 use think\exception\HttpResponseException;
 use Exception;
+use think\facade\Db;
 
 /**
  * 余额充值记录
@@ -63,8 +64,27 @@ class Balance extends Controller
         if ($db->getOptions('where')) $query->whereRaw("uuid in {$db->field('id')->buildSql()}");
         // 数据查询分页
 
+        $sql ='SELECT status as asd , SUM(amount) AS total_amount 
+                FROM data_user_balance
+                GROUP BY asd;
+        ';
+        $balance_list = Db::query($sql);
+        $balance_listok = 0;
+        $balance_listis = 0;
+        $balance_listno = 0;
+        foreach($balance_list as $v){
+            if($v['asd'] == 1) $balance_listok = $v['total_amount']; 
+            if($v['asd'] == 2) $balance_listis = $v['total_amount']; 
+            if($v['asd'] == 3) $balance_listno = $v['total_amount']; 
+        }
+        
         $networkArr = SystemBase::where('type','recharge_pay')->select();
         $this->assign('networkArr',$networkArr);
+        $this->assign([
+            'balance_listok' => $balance_listok,
+            'balance_listis' => $balance_listis,
+            'balance_listno' => $balance_listno,
+        ]);
 
         $query->where(['deleted' => 0])->like('code,remark')->dateBetween('create_at')->order('id desc')->page();
     }
