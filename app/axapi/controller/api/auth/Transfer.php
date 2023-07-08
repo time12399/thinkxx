@@ -201,6 +201,7 @@ class Transfer extends Auth
             $d['name'] = $d['money_type'];
             unset($d['money_type']);
             $d['type'] = 'card';
+            $d['uuid'] = $this->uuid;
             $m = Db::table($dbname)->insert($d);
         }else{
             $data = $this->_vali([
