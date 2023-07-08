@@ -184,11 +184,12 @@ class Transfer extends Auth
             ]);
             $indata = [
                 'type'=>'number',
+                'name'=>$d['money_type'],
                 'address'=>$d['money_address'],
                 'uuid'=>$this->uuid,
             ];
             $m = Db::table($dbname)->insert($indata);
-        }
+        }else
         if($data['type'] == 2){
             $d = $this->_vali([
                 'money_type.require'   => '支持货币！',
@@ -197,9 +198,14 @@ class Transfer extends Auth
                 'bank_username.require'   => '收款人姓名不能为空！',
                 'bank_number.require'   => '提现账户不能为空！',
             ]);
+            $d['name'] = $d['money_type'];
             unset($d['money_type']);
             $d['type'] = 'card';
             $m = Db::table($dbname)->insert($d);
+        }else{
+            $data = $this->_vali([
+                'type1.require'   => 'error',
+            ]);
         }
         if($m){
             $this->success('操作成功');
