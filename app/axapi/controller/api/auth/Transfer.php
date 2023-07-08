@@ -89,6 +89,85 @@ class Transfer extends Auth
         }
     }
 
+
+    public function showWithdrawType()
+    {
+        $data = $this->_vali([
+            'showWithdraw.require'   => 'error',
+        ]);
+        // 提现配置
+        // base_user_payment_address
+        $base_tx = [];
+        if($data['showWithdraw'] == 1) {
+            $base_tx = Db::table('base_user_payment_address')
+                ->field('id,name')
+                ->where('type','number')
+                ->select();
+        }
+
+        if($data['showWithdraw'] == 2) {
+            $base_tx = Db::table('base_user_payment_address')
+                ->field('id,name')
+                ->where('type','card')
+                ->select();
+        }
+        $this->success('操作成功',$base_tx);
+    }
+    /**
+     * @return void
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     * 回显提现列表
+     */
+    public function showWithdrawAddress()
+    {
+        $data = $this->_vali([
+            'showWithdraw.require'   => 'error',
+        ]);
+        $myList = [];
+        if($data['showWithdraw'] == 1){
+            $myList = Db::table('user_withdraw_address')
+                ->field('id,name,address')
+                ->where('type','number')
+                ->where('uuid',$this->uuid)
+                ->select();
+        }
+
+        if($data['showWithdraw'] == 2){
+            $myList = Db::table('user_withdraw_address')
+                ->field('id,name,bank_name,bank_address,bank_username,bank_number')
+                ->where('type','card')
+                ->where('uuid',$this->uuid)
+                ->select();
+        }
+
+        $this->success('操作成功 ',$myList);
+    }
+    /**
+     * @return void
+     * 删除用户提现地址
+     */
+    public function delWithdrawAddress()
+    {
+        $dbname ='user_withdraw_address';
+        $data = $this->_vali([
+            'address_id.require'   => 'error',
+        ]);
+        $m = Db::table($dbname)->where([
+            'uuid'=>$this->uuid,
+            'id'=>$data['address_id']
+        ])->delete();
+        if($m){
+            $this->success('操作成功');
+        }else{
+            $this->error('操作失败');
+        }
+    }
+    /**
+     * @return void
+     * 新增提现地址
+     */
     public function addWithdrawAddress()
     {
         // 新增用户提现地址
@@ -152,7 +231,7 @@ class Transfer extends Auth
                     'status'=>1,
                 ])->order('sort desc')->order('id desc')->select();
             // base_user_payment_address 用户地址表
-            $myList = Db::table('base_user_payment_address')
+            $myList = Db::table('user_withdraw_address')
                 ->field('id,name,address')
                 ->where('type','number')
                 ->where('uuid',$this->uuid)
