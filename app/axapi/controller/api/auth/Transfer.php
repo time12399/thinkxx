@@ -137,6 +137,10 @@ class Transfer extends Auth
      */
     public function showWithdraw()
     {
+        $my = [
+            'money'=>999999,
+            'sxf'=>10
+        ];
         $data = $this->_vali([
             'showWithdraw.require'   => '提现方式不能为空！',
         ]);
@@ -159,7 +163,7 @@ class Transfer extends Auth
                 ->field('amount,amount as dzAmount, type as unit,type as sxf,status,create_at as datetime,type as address,remark')
                 ->paginate(config('page')['page']);
 
-            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList,'myOrder'=>$myOrder]);
+            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList,'myOrder'=>$myOrder,'my_money'=>$my]);
         }else
         if($data['showWithdraw'] == 2){
             $list = Db::table('base_user_payment')
@@ -179,7 +183,7 @@ class Transfer extends Auth
                 ->field('amount,amount as dzAmount, type as unit,type as sxf,status,create_at as datetime,type as address,remark')
                 ->paginate(config('page')['page']);
 
-            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList]);
+            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList,'myOrder'=>$myOrder,'my_money'=>$my]);
         }else{
             $data = $this->_vali([
                 'showWithdraw1.require'   => '提现方式不能为空！',
