@@ -89,6 +89,45 @@ class Transfer extends Auth
         }
     }
 
+    public function addWithdrawAddress()
+    {
+        // 新增用户提现地址
+        // user_withdraw_address
+        $dbname ='user_withdraw_address';
+        $data = $this->_vali([
+            'type.require'   => '提现方式不能为空！',
+        ]);
+        //数字货币
+        if($data['type'] == 1){
+            $d = $this->_vali([
+                'money_type.require'   => '提现种类不能为空！',
+                'money_address.require'   => '提现地址不能为空！',
+            ]);
+            $indata = [
+                'type'=>'number',
+                'address'=>$d['money_address'],
+                'uuid'=>$this->uuid,
+            ];
+            $m = Db::table($dbname)->insert($indata);
+        }
+        if($data['type'] == 2){
+            $d = $this->_vali([
+                'money_type.require'   => '支持货币！',
+                'bank_name.require'   => '银行名称不能为空！',
+                'bank_address.require'   => '银行地址不能为空！',
+                'bank_username.require'   => '收款人姓名不能为空！',
+                'bank_number.require'   => '提现账户不能为空！',
+            ]);
+            unset($d['money_type']);
+            $d['type'] = 'card';
+            $m = Db::table($dbname)->insert($d);
+        }
+        if($m){
+            $this->success('操作成功');
+        }else{
+            $this->error('操作失败');
+        }
+    }
     /**
      * @return void
      * @throws \think\db\exception\DataNotFoundException
@@ -108,6 +147,7 @@ class Transfer extends Auth
                     'type'=>'withdraw_number',
                     'status'=>1,
                 ])->order('sort desc')->order('id desc')->select();
+            // base_user_payment_address 用户地址表
             $myList = Db::table('base_user_payment_address')
                 ->field('id,name,address')
                 ->where('type','number')
