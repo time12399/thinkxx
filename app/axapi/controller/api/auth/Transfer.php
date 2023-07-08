@@ -27,6 +27,7 @@ use think\admin\extend\CodeExtend;
 use think\facade\Db;
 use Exception;
 use think\exception\HttpResponseException;
+use think\facade\Request;
 
 
 /**
@@ -51,8 +52,13 @@ class Transfer extends Auth
             'moeny_type.require'   => '提现方式不能为空！',
             'money_class_id.require' => '货币类型不能为空',
             'money_address_id.require' => '请选择提现地址',
-            'money.require' => '提现金额不能为空！',
+            'money.require' => '提现金额不能为空！'
         ]);
+        $remark = '';
+        $r = Request::param();
+        if(isset($r['money_remark'])){
+            $remark = $r['money_remark'];
+        }
         $data = [
             'uuid'=>$this->uuid,
             'type'=>$data['moeny_type'],
@@ -61,8 +67,9 @@ class Transfer extends Auth
             'amount'=>$data['money']
         ];
         $data['code'] = CodeExtend::uniqidDate(20, 'T');
-
-        $DataUserBalance = new DataUserTransfer;
+        $data['remark'] = $remark;
+        $DataUserTransfer = new DataUserTransfer;
+        // 提现表 data_user_transfer
         $my_total = Db::table('data_user')->where('id',$this->uuid)->value('my_total');
         if($my_total < $data['amount']){
             $this->error("可提现金额不足");
@@ -70,9 +77,9 @@ class Transfer extends Auth
         try {
             // 给用户扣钱
             // 新增提现订单
-            $this->app->db->transaction(function () use ($DataUserBalance,$data) {
+            $this->app->db->transaction(function () use ($DataUserTransfer,$data) {
                 Db::table('data_user')->where('id',$this->uuid)->dec('my_total',$data['amount'])->update();
-                $DataUserBalance->save($data);
+                $DataUserTransfer->save($data);
             });
             $this->success('操作成功',[]);
         } catch (HttpResponseException $exception) {
@@ -106,7 +113,13 @@ class Transfer extends Auth
                 ->where('type','number')
                 ->where('uuid',$this->uuid)
                 ->select();
-            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList]);
+
+            $myOrder = DataUserTransfer::where('uuid',$this->uuid)
+                ->where('type',1)
+                ->field('amount,amount as dzAmount, type as unit,type as sxf,status,create_at as datetime,type as address,remark')
+                ->paginate(config('page')['page']);
+
+            $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList,'myOrder'=>$myOrder]);
         }else
         if($data['showWithdraw'] == 2){
             $list = Db::table('base_user_payment')
@@ -120,6 +133,12 @@ class Transfer extends Auth
                 ->where('type','card')
                 ->where('uuid',$this->uuid)
                 ->select();
+
+            $myOrder = DataUserTransfer::where('uuid',$this->uuid)
+                ->where('type',2)
+                ->field('amount,amount as dzAmount, type as unit,type as sxf,status,create_at as datetime,type as address,remark')
+                ->paginate(config('page')['page']);
+
             $this->success('操作成功',['withdraw_type'=>$list,'myList'=>$myList]);
         }else{
             $data = $this->_vali([
