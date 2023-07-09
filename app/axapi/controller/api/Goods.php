@@ -17,6 +17,8 @@
 namespace app\axapi\controller\api;
 
 use app\axapi\model\ShopGoods;
+use app\axapi\model\ShopData;
+
 use app\axapi\model\ShopGoodsCate;
 use app\axapi\model\ShopGoodsMark;
 use app\axapi\service\ExpressService;
@@ -49,21 +51,116 @@ class Goods extends Controller
         Gateway::$registerAddress = '127.0.0.1:1238';
     }
     
+    //生成数据
+    public function shopData()
+    {
+        $title = '生成数据';
+        $command = 'xdata:ShopData';
+        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
+        var_dump($code);
+    }
+    public function getAllCid()
+    {
+        //查看全部在线cid
+        $count1 = Gateway::getAllClientCount();
+        var_dump($count1);
+    }
+    /**
+     * @return void
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     * 给在线用户发送数据
+     */
+    public function sendShopData()
+    {
+        $goods = Cache::store('file')->get('goods');
+        if(empty($goods)) {
+            $goods = Db::table('shop_goods')->select();
+        }
+        $y = date('y');
+        $m = date('m');
+        $d = date('d');
+        $h = date('h');
+        $i = date('i');
+        $s = date('s');
+        $dd = date('y-m-d h:i:s');
+        $tt = time();
+        //查询在线用户
+        $user_arr = Cache::get('user_arr');
+        if($user_arr){
+            foreach($user_arr as $v){
+                if($v == 'x'){
+                    echo '给用户发送默认产品数据';
+
+                }else{
+                    echo '给用户发送收藏产品数据';
+                }
+            }
+        }
+        foreach($goods as $v){
+            // var_dump($v['name']);
+            $data = [
+                'media_id'=>$v['id'],
+                'y'=>$y,
+                'm'=>$m,
+                'd'=>$d,
+                'h'=>$h,
+                'i'=>$i,
+                's'=>$s,
+                'now_buy'=>rand(1,10),
+                'now_sell'=>rand(1,10),
+                'now_ups_v'=>rand(1,10),
+                'name'=>$v['name']
+            ];
+            // ShopData::insert($data);
+        }
+    }
+
 
     //队列任务-给每个用户发消息
     public function sendMemberMsg(){
         $user = Cache::store('file')->get('user_arr');
-        var_dump($user);
-        $message = '{"type":"send_to_uid","uid":"xxxxx", "message":"...."}';
-        // $req_data = json_decode($message, true);
-        Gateway::sendToAll($message);
+        foreach ($user as $a => $item) {
+            $isOnline = Gateway::isUidOnline($item);
+            if($isOnline == 0){
+                unset($user[$a]);
+            }
+        }
+        $user = Cache::store('file')->set('user_arr',$user);
+
+        $goods = Cache::store('file')->get('goods');
+        if(empty($goods)) {
+            $goods = Db::table('shop_goods')->select();
+            Cache::store('file')->set('goods',$goods);
+        }
+        $data = [];
+        $time1 = time();
+        foreach ($goods as $good) {
+            $data[] = [
+                'id'=>$good['id'],
+                'name'=>$good['name'],
+                'now_sell_arr'=>rand(100,999),
+                'now_buy_arr'=>rand(100,999),
+                'now_sell_status'=>rand(1,2),
+                'now_buy_status'=>rand(1,2),
+                'time'=>$time1,
+            ];
+        }
+
+        $d['type']='index_goods';
+        $d['data']=$data;
+        $req_data = json_encode($d);
+//        $req_data = time();
+        Gateway::sendToAll($req_data);
         var_dump('发送消息');
     }
     //队列每秒给用户发消息
     public function sendmsg(){
         $title = '异步发送消息';
         $command = 'xdata:UserSendMsg';
-        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
+        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 0, $loops = 1);
         var_dump($code);
     }
     protected function LS($n){
@@ -327,7 +424,7 @@ class Goods extends Controller
                 ->cache(true,60)
                 ->paginate($this->page);*/
 
-                $sql = '
+                /*$sql = '
                 SELECT my.pid as myid , u.id , u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
                 FROM shop_goods u
                 JOIN (
@@ -339,12 +436,17 @@ class Goods extends Controller
 								join data_user_my_collect my on my.pid = u.id where my.uid = ? order by my.sort desc, my.id desc
                 ';
 
-            $list = Db::query($sql,[$user[2]]);
+            $list = Db::query($sql,[$user[2]]);*/
+            $list = DB::table('data_user_my_collect')
+                ->alias('my')
+                ->field('my.id as myid,g.id,g.name,g.name,g.k_low,g.k_top,g.k_status,g.k_percent')
+                ->leftJoin('shop_goods g','my.pid = g.id')
+                ->where('my.uid',$this->uuid)->select()->toArray();
             $data_info = '用户商品数据';
             
         }else{
             // $this->error('用户登录失败！', '{-null-}', 401);
-            $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
+            /*$sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
                         FROM shop_goods u
                         JOIN (
                             SELECT media_id, MAX(time) AS max_time
@@ -352,12 +454,13 @@ class Goods extends Controller
                             GROUP BY media_id
                         ) t ON u.id = t.media_id
                         JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
-            $list = Db::query($sql);
+            $list = Db::query($sql);*/
+            $list = Db::table('shop_goods')->select()->toArray();
             $data_info = '全部商品数据';
         }
         function str_k_v($srt){
-            [$a,$b] = explode('.',$srt);
 
+            [$a,$b] = explode('.',$srt);
             if(strlen($a) >= 3){
                 $v1 = $a.'.';
                 
@@ -379,15 +482,22 @@ class Goods extends Controller
             }
             return [$v1,$v2,$v3];
         }
-        foreach($list as $a=>$v){
-            $list[$a]['now_sell_arr'] = str_k_v($v['now_sell']);
-            $list[$a]['now_buy_arr'] = str_k_v($v['now_buy']);
-            $list[$a]['time_v'] = date('H:i:s');
-            $list[$a]['time_r_v'] = rand(5,100);
-            $list[$a]['left_v'] = '-'.rand(1,100);
 
-            $list[$a]['now_sell_status'] = 0;
-            $list[$a]['now_buy_status'] = 0;
+        foreach($list as &$v){
+            $v1 = Db::table('shop_data')->where('')->order('id desc')->find();
+            $v['now_sell_arr'] = str_k_v($v1['now_sell']);
+            $v['now_buy_arr'] = str_k_v($v1['now_buy']);
+
+
+            $v['now_buy'] = $v1['now_buy'];
+            $v['now_sell'] = $v1['now_sell'];
+
+            $v['time_v'] = date('H:i:s');
+            $v['time_r_v'] = rand(5,100);
+            $v['left_v'] = '-'.rand(1,100);
+
+            $v['now_sell_status'] = 0;
+            $v['now_buy_status'] = 0;
         }
         $this->success($data_info, ['data'=>$list]);
     }
