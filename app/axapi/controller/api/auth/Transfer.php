@@ -130,6 +130,7 @@ class Transfer extends Auth
             $myList = Db::table('user_withdraw_address')
                 ->field('id,name,address')
                 ->where('type','number')
+                ->order('id desc')
                 ->where('uuid',$this->uuid)
                 ->select();
         }
@@ -138,6 +139,7 @@ class Transfer extends Auth
             $myList = Db::table('user_withdraw_address')
                 ->field('id,name,bank_name,bank_address,bank_username,bank_number')
                 ->where('type','card')
+                ->order('id desc')
                 ->where('uuid',$this->uuid)
                 ->select();
         }
