@@ -93,7 +93,6 @@ class Goods extends Controller
             foreach($user_arr as $v){
                 if($v == 'x'){
                     echo '给用户发送默认产品数据';
-
                 }else{
                     echo '给用户发送收藏产品数据';
                 }
@@ -337,14 +336,15 @@ class Goods extends Controller
 
         if($user[0] == 1){
             //已登录-删除收藏
-            $m = Db::table('data_user_my_collect')->where(['pid'=>$data['pid'],'uid'=>$user[2]])->delete();
+//            $m = Db::table('data_user_my_collect')->where(['pid'=>$data['pid'],'uid'=>$user[2]])->delete();
+            $m = Db::table('data_user_my_collect')->where(['id'=>$data['pid'],'uid'=>$user[2]])->delete();
             if($m){
                 $this->success('操作成功');
             }else{
                 $this->error('操作失败', [], 2);
             }
         }else{
-            $this->error('操作失败', [], 2);
+            $this->error('请登录', [], 0);
         }
     }
 
@@ -439,7 +439,7 @@ class Goods extends Controller
             $list = Db::query($sql,[$user[2]]);*/
             $list = DB::table('data_user_my_collect')
                 ->alias('my')
-                ->field('my.id as myid,g.id,g.name,g.name,g.k_low,g.k_top,g.k_status,g.k_percent')
+                ->field('my.id as id,g.id as myid,g.name,g.name,g.k_low,g.k_top,g.k_status,g.k_percent')
                 ->leftJoin('shop_goods g','my.pid = g.id')
                 ->where('my.uid',$this->uuid)->select()->toArray();
             $data_info = '用户商品数据';
