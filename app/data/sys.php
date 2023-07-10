@@ -29,6 +29,7 @@ use think\Console;
 
 use app\data\command\UserSendMsg;
 use app\data\command\ShopData;
+use app\data\command\SendMinuteMsg;
 
 if (Library::$sapp->request->isCli()) {
     // 动态注册操作指令
@@ -40,6 +41,7 @@ if (Library::$sapp->request->isCli()) {
 
         $console->addCommand(UserSendMsg::class);
         $console->addCommand(ShopData::class);
+        $console->addCommand(SendMinuteMsg::class);
     });
 } else {
     // 注册订单支付处理事件

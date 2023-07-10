@@ -58,14 +58,16 @@
                 </div>
             </td>
             <td class='text-left nowrap'>
-                {eq name='vo.status' value='0'}<span class="layui-badge layui-badge-middle layui-bg-red">已失败</span>{/eq}
+                {eq name='vo.status' value='0'}<span class="layui-badge layui-badge-middle layui-bg-red">已驳回</span>{/eq}
                 {eq name='vo.status' value='1'}<span class="layui-badge layui-badge-middle layui-bg-cyan">待审核</span>{/eq}
                 {eq name='vo.status' value='2'}<span class="layui-badge layui-badge-middle layui-bg-blue">已审核</span>{/eq}
                 {eq name='vo.status' value='3'}<span class="layui-badge layui-badge-middle layui-bg-blue">待打款</span>{/eq}
                 {eq name='vo.status' value='4'}<span class="layui-badge layui-badge-middle layui-bg-green">已通过</span>{/eq}
                 {eq name='vo.status' value='5'}<span class="layui-badge layui-badge-middle layui-bg-green">已完成</span>{/eq}
                 <div class="text-middle inline-block">
-                    提现金额：<b class="color-blue">{$vo.amount+0}</b> 元
+                    提现金额：<b class="color-blue">{$vo.amount+0}</b> 元 
+                    到账金额：<b class="color-blue">{$vo.amount+0}</b> 元
+                    
                     {if $vo.charge_amount>0}<span class="color-desc"> ( 含手续费 {$vo.charge_amount+0} 元 )</span>{/if}
                     <div>提现单号：<b class="color-blue">{$vo.code|default='--'}</b></div>
                     <div>提现方式：{$vo.type_name|default='-'}</div>
@@ -107,7 +109,7 @@
                 {/if}
 
                 {if auth('auditPayment') and in_array($vo.status, [2,3,4])}
-                <a class="layui-btn layui-btn-sm" data-modal="{:url('auditPayment')}?code={$vo.code}">提现打款</a>
+                <a class="layui-btn layui-btn-sm" data-modal="{:url('auditPayment')}?code={$vo.code}">已通过</a>
                 {/if}
 
             </td>

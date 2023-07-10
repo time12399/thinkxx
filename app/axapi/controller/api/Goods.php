@@ -22,7 +22,6 @@ use app\axapi\model\ShopData;
 use app\axapi\model\ShopGoodsCate;
 use app\axapi\model\ShopGoodsMark;
 use app\axapi\service\ExpressService;
-use app\axapi\service\GoodsService;
 use think\admin\Controller;
 
 
@@ -65,61 +64,172 @@ class Goods extends Controller
         $count1 = Gateway::getAllClientCount();
         var_dump($count1);
     }
+
+    /**
+     * @return void
+     * 定时任务_发送数据 SendMinuteMsgSend
+     * 定时任务__每分钟生成数据
+     */
+    public function sendMsg_m()
+    {
+        $this->sendMsg_m1(9);
+    }
+    public function sendMsg_m1($t=1)
+    {
+        if($t ==9){
+            $title = '发送消息60s';
+            $command = 'xdata:SendMinuteMsg';
+            $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 0, $loops = 59);
+            var_dump($code);
+            die;
+        }
+
+        $goods = Cache::get('goods_m');
+        if(empty($goods)) {
+            $sql = 'SELECT sg.*, sd.* ,sd.id as last_id
+                    FROM shop_goods sg
+                    JOIN shop_data sd ON sg.id = sd.media_id
+                    WHERE sd.id = (
+                      SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
+                    );
+                    ';
+            $list = Db::query($sql);
+            Cache::set('goods_m',$list,6000);
+        }
+        $goods = Cache::get('goods_m');
+        if(!empty($goods)){
+            $sql = 'SELECT *,k_low ,id as media_id ,k_low as val   FROM shop_goods;';
+            $list = Db::query($sql);
+            Cache::set('goods_m',$list,6000);
+        }
+
+        $goods = Cache::get('goods_m');
+
+        $xs_num = 1000000;
+        $y = date('Y');
+        $m = date('m');
+        $d = date('d');
+        $h = date('H');
+        $i = date('i');
+        $s = date('s');
+        $dd = date('y-m-d h:i:s');
+        $tt = time();
+        $ShopDataInsert = [
+            'y'=>$y,
+            'm'=>$m,
+            'd'=>$d,
+            'h'=>$h,
+            'i'=>$i,
+            's'=>$s,
+            'date'=>$dd,
+            'time'=>$tt
+        ];
+        $a=0;
+        $b=0;
+        $senddata1 = [];
+        foreach ($goods as $good) {
+            $a++;
+            //生成随机数据
+            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
+            $s_bd = number_format($sj/$xs_num,6);
+            // 每秒随机 + -
+            $is_bd = mt_rand(0,100);
+            $s_val = $good['val'];
+            $ts_v = $is_bd >= 50?$s_val+$s_bd:$s_val-$s_bd;
+            $ShopDataInsert['name'] =$good['name'];
+            $ShopDataInsert['media_id'] =$good['media_id'];
+            $ShopDataInsert['val'] = (string)$ts_v;
+            $ShopDataInsert['now_buy'] =(string)$ts_v;
+            $ShopDataInsert['now_sell'] =(string)$ts_v;
+            // dump($ShopDataInsert);
+            $m = ShopData::insert($ShopDataInsert);
+            if($m){
+                $b++;
+            }
+            $senddata1[$ShopDataInsert['media_id']]=$ShopDataInsert;
+        }
+        //发送消息
+        $senddata['type']='index_goods_m';
+        $senddata['data']=$senddata1;
+        $req_data = json_encode($senddata);
+        Gateway::sendToAll($req_data);
+
+        return [$a,$b];
+    }
+    /** end */
+
+
     /**
      * @return void
      * @throws \Psr\SimpleCache\InvalidArgumentException
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
-     * 给在线用户发送数据
+     * 给用户发送数据 ok
      */
-    public function sendShopData()
+    public function sendMsg_s()
     {
-        $goods = Cache::store('file')->get('goods');
+        $title = '发送消息1s';
+        $command = 'xdata:UserSendMsg';
+        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 0, $loops = 1);
+        var_dump($code);
+    }
+    public function sendMsg_s1()
+    {
+        $goods = Cache::get('goods_s');
         if(empty($goods)) {
-            $goods = Db::table('shop_goods')->select();
+            $sql = 'SELECT sg.*, sd.* ,sd.id as last_id
+                    FROM shop_goods sg
+                    JOIN shop_data sd ON sg.id = sd.media_id
+                    WHERE sd.id = (
+                      SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
+                    );
+                    ';
+            $list = Db::query($sql);
+            Cache::set('goods_s',$list,59);
         }
-        $y = date('y');
-        $m = date('m');
-        $d = date('d');
-        $h = date('h');
-        $i = date('i');
-        $s = date('s');
+        $goods = Cache::get('goods_s');
+
+        $xs_num = 1000000;
         $dd = date('y-m-d h:i:s');
         $tt = time();
-        //查询在线用户
-        $user_arr = Cache::get('user_arr');
-        if($user_arr){
-            foreach($user_arr as $v){
-                if($v == 'x'){
-                    echo '给用户发送默认产品数据';
-                }else{
-                    echo '给用户发送收藏产品数据';
-                }
-            }
-        }
-        foreach($goods as $v){
-            // var_dump($v['name']);
-            $data = [
-                'media_id'=>$v['id'],
-                'y'=>$y,
-                'm'=>$m,
-                'd'=>$d,
-                'h'=>$h,
-                'i'=>$i,
-                's'=>$s,
-                'now_buy'=>rand(1,10),
-                'now_sell'=>rand(1,10),
-                'now_ups_v'=>rand(1,10),
-                'name'=>$v['name']
-            ];
-            // ShopData::insert($data);
-        }
-    }
+        $senddata = [];
+        foreach ($goods as $good) {
+            //生成随机数据
+            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
+            $s_bd = number_format($sj/$xs_num,6);
+            // 每秒随机 + -
+            $is_bd = mt_rand(0,100);
+            $s_val = $good['val'];
+            $ts_v = $is_bd >= 50?$s_val+$s_bd:$s_val-$s_bd;
+            $ShopDataInsert['name'] =$good['name'];
+            $ShopDataInsert['media_id'] =$good['media_id'];
+            $ShopDataInsert['val'] = (string)$ts_v;
 
+            $ShopDataInsert['now_buy'] =(string)$ts_v;
+            $ShopDataInsert['now_sell'] =(string)$ts_v;
+
+            $ShopDataInsert['now_buy_arr'] =$this->str_k_v($ts_v);
+            $ShopDataInsert['now_sell_arr'] =$this->str_k_v($ts_v);
+            $ShopDataInsert['now_buy_status'] =rand(1,2);
+            $ShopDataInsert['now_sell_status'] =rand(1,2);
+
+
+            $senddata[$ShopDataInsert['media_id']]=$ShopDataInsert;
+        }
+        //发送消息
+        $d['type']='index_goods_s';
+        $d['data']=$senddata;
+        $req_data = json_encode($d);
+        Gateway::sendToAll($req_data);
+    }
+    /**
+     * 给用户发送数据 end
+     */
 
     //队列任务-给每个用户发消息
-    public function sendMemberMsg(){
+    public function sendMemberMsg_old(){
+        die;
         $user = Cache::store('file')->get('user_arr');
         foreach ($user as $a => $item) {
             $isOnline = Gateway::isUidOnline($item);
@@ -135,32 +245,56 @@ class Goods extends Controller
             Cache::store('file')->set('goods',$goods);
         }
         $data = [];
+        $id = [];
         $time1 = time();
+        $xs_num = 1000000;
+        //获取最近一条数据
         foreach ($goods as $good) {
+            $id[] = $good['id'];
+        }
+        $id1 = [];
+        $sql = 'SELECT media_id, MAX(id) as id FROM shop_data GROUP BY media_id';
+        $list1 = Db::query($sql);
+        foreach ($list1 as $good) {
+            $id1[] = $good['id'];
+        }
+        // 缓存70s上次的值
+        $last_list = Cache::get('last_list');
+        if (empty($last_list)) {
+            $last_list = Db::table('shop_data')->whereIn('id',$id1)->select()->toArray();
+            $last_list1 = [];
+            foreach ($last_list as $a=>$item) {
+                $last_list1[$item['media_id']] = $item;
+            }
+            Cache::set('last_list',$last_list1,70);
+        }
+        $last_list = Cache::get('last_list');
+
+        foreach ($goods as $good) {
+            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
+            // 每秒随机波动值
+            $s_bd = number_format($sj/$xs_num,6);
+            // 每秒随机 + -
+            $is_bd = mt_rand(1,2);
+            // 当前分钟产品的值
+            $s_val = $last_list[$good['id']]['val'];
+            $ts_v = $is_bd == 1?$s_val+$s_bd:$s_val-$s_bd;
             $data[] = [
                 'id'=>$good['id'],
                 'name'=>$good['name'],
-                'now_sell_arr'=>rand(100,999),
-                'now_buy_arr'=>rand(100,999),
+                'now_sell_arr'=>$this->str_k_v($ts_v),
+                'now_buy_arr'=>$this->str_k_v($ts_v),
                 'now_sell_status'=>rand(1,2),
                 'now_buy_status'=>rand(1,2),
+                'val'=>$ts_v,
                 'time'=>$time1,
             ];
         }
-
         $d['type']='index_goods';
         $d['data']=$data;
         $req_data = json_encode($d);
-//        $req_data = time();
         Gateway::sendToAll($req_data);
         var_dump('发送消息');
-    }
-    //队列每秒给用户发消息
-    public function sendmsg(){
-        $title = '异步发送消息';
-        $command = 'xdata:UserSendMsg';
-        $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 0, $loops = 1);
-        var_dump($code);
     }
     protected function LS($n){
         if($n){
@@ -348,6 +482,11 @@ class Goods extends Controller
         }
     }
 
+    /**
+     * @param $srt
+     * @return array
+     * 分割字符串
+     */
     protected function str_k_v($srt){
         [$a,$b] = explode('.',$srt);
 
