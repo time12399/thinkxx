@@ -213,7 +213,7 @@ class Goods extends Controller
             $ShopDataInsert['now_sell_arr'] =$this->str_k_v($ts_v);
             $ShopDataInsert['now_buy_status'] =rand(1,2);
             $ShopDataInsert['now_sell_status'] =rand(1,2);
-
+            $ShopDataInsert['time'] =strtotime(date('Y-m-d H:i:00'));
 
             $senddata[$ShopDataInsert['media_id']]=$ShopDataInsert;
         }
@@ -343,6 +343,11 @@ class Goods extends Controller
         if($user[0] == 9){
             $this->error('登录失败', [], 401);
         }
+        // 查找产品
+        $m = ShopGoods::find($data['pid']);
+        if(empty($m)){
+            $this->error('产品不存在');
+        }
         //返回最新数据
         $f = Db::table('shop_data')->where('a.media_id',$data['pid'])
         ->alias('a')
@@ -351,8 +356,16 @@ class Goods extends Controller
         ->order('id desc')->find();
         $f['now_buy_status']=0;
         $f['now_sell_status']=0;
+
+        $f['now_buy_str'] = strval($f['now_buy']);
+        $f['now_sell_str'] = strval($f['now_sell']);
+        
         $f['now_buy'] = $this->str_k_v($f['now_buy']);
         $f['now_sell'] = $this->str_k_v($f['now_sell']);
+
+
+        
+
         $this->success('操作成功',$f);
     }
 
