@@ -158,7 +158,60 @@ class Goods extends Controller
     }
     /** end */
 
+    public function sendMsg_code()
+    {
+        $curlData = Cache::get('curl');
+        if($curlData['Code'] == 0){
+            foreach ($curlData['Obj'] as $item) {
+                // dump($item);
+                // 时间
+                /* dump($item['Tick']);
+                // 名字
+                dump($item['FS']);
+                // 最新价
+                dump($item['P']);
+                // 买入
+                dump($item['B1']);
+                // 卖出
+                dump($item['S1']);
+                // 当天开盘价
+                dump($item['O']);
+                // 当天最高价
+                dump($item['H']);
+                // 当天最低价
+                dump($item['L']);
+                // 昨收价
+                dump($item['YC']); */
+                //
+                dump($item['FS']);
+            }
+        }
+        die;
+        $host = "https://alirmcom2.market.alicloudapi.com";
+        $path = "/query/comrms";
+        $method = "POST";
+        $appcode = "";
+        $headers = array();
+        array_push($headers, "Authorization:APPCODE " . $appcode);
+        $querys = "symbols=USDCNH%2CSH000001%2CSHFEAU%2CCMEJY";
+        $bodys = "";
+        $url = $host . $path . "?" . $querys;
 
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_FAILONERROR, false);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        if (1 == strpos("$".$host, "https://"))
+        {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        }
+        $curlData = json_decode(curl_exec($curl),true);
+        Cache::set('curl',$curlData,0);
+    }
     /**
      * @return void
      * @throws \Psr\SimpleCache\InvalidArgumentException
@@ -191,7 +244,7 @@ class Goods extends Controller
         $goods = Cache::get('goods_s');
 
         $xs_num = 1000000;
-        $dd = date('y-m-d h:i:s');
+        $dd = date('Y-m-d h:i:s');
         $tt = time();
         $senddata = [];
         foreach ($goods as $good) {
@@ -213,7 +266,8 @@ class Goods extends Controller
             $ShopDataInsert['now_sell_arr'] =$this->str_k_v($ts_v);
             $ShopDataInsert['now_buy_status'] =rand(1,2);
             $ShopDataInsert['now_sell_status'] =rand(1,2);
-            $ShopDataInsert['time'] =strtotime(date('Y-m-d H:i:00'));
+            $ShopDataInsert['datetime'] =$dd;
+            $ShopDataInsert['time'] =$tt;
 
             $ShopDataInsert['open'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
             $ShopDataInsert['height'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
