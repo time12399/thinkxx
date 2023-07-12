@@ -160,14 +160,18 @@ class Goods extends Controller
 
     public function sendMsg_code()
     {
+        var_dump(date('YmdHi00'));
+        var_dump(strtotime(date('Y-m-d H:i')));
+        die;
         $curlData = Cache::get('curl');
+        $a = '';
         if($curlData['Code'] == 0){
             foreach ($curlData['Obj'] as $item) {
-                // dump($item);
+                dump($item);
                 // 时间
-                /* dump($item['Tick']);
+                dump(date('Y-m-d H:s:i',$item['Tick']));
                 // 名字
-                dump($item['FS']);
+                /* dump($item['FS']);
                 // 最新价
                 dump($item['P']);
                 // 买入
@@ -184,13 +188,16 @@ class Goods extends Controller
                 dump($item['YC']); */
                 //
                 dump($item['FS']);
+                $a .= $item['FS'].',';
             }
         }
+        $a = rtrim($a,',');
+        var_dump($a);
         die;
         $host = "https://alirmcom2.market.alicloudapi.com";
         $path = "/query/comrms";
         $method = "POST";
-        $appcode = "";
+        $appcode = "d25a6d8f884942ca811a19587c4be69f";
         $headers = array();
         array_push($headers, "Authorization:APPCODE " . $appcode);
         $querys = "symbols=USDCNH%2CSH000001%2CSHFEAU%2CCMEJY";
@@ -246,6 +253,11 @@ class Goods extends Controller
         $xs_num = 1000000;
         $dd = date('Y-m-d h:i:s');
         $tt = time();
+
+        $dd1 = date('Y-m-d h:i');
+        $dd2 = date('Ymdhi00');
+        $dd3 = date('Ymdhi');
+
         $senddata = [];
         foreach ($goods as $good) {
             //生成随机数据
@@ -269,10 +281,18 @@ class Goods extends Controller
             $ShopDataInsert['datetime'] =$dd;
             $ShopDataInsert['time'] =$tt;
 
-            $ShopDataInsert['open'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
-            $ShopDataInsert['height'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
-            $ShopDataInsert['low'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
-            $ShopDataInsert['close'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
+            $ShopDataInsert['datetime1'] =$dd1;
+            $ShopDataInsert['time1'] =strtotime($dd1);
+            $ShopDataInsert['datetime2'] =$dd2;
+            $ShopDataInsert['time2'] =strtotime($dd2);
+            $ShopDataInsert['datetime3'] =$dd3;
+            $ShopDataInsert['time3'] =strtotime($dd3);
+
+
+            $ShopDataInsert['open'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
+            $ShopDataInsert['height'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
+            $ShopDataInsert['low'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
+            $ShopDataInsert['close'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
 
             $senddata[$ShopDataInsert['media_id']]=$ShopDataInsert;
         }
