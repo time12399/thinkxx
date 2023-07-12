@@ -31,6 +31,8 @@ use app\axapi\service\UserTokenService;
 use think\exception\HttpResponseException;
 use app\axapi\service\UserAdminService;
 use Exception;
+use think\facade\Db;
+
 /**
  * 基础数据接口
  * Class Data
@@ -50,7 +52,13 @@ class Data extends Auth
         $data = $this->_vali([
             'type.require' => '数据类型不能为空！'
         ]);
-        $list=SystemBase::field('id,name')->where(['type'=>$data['type'],'deleted'=>0,'status'=>1])->select();
+        $list = [];
+        if($data['type'] == 'recharge_pay'){
+            $list1 = Db::table('base_user_payment')->field('id,name')->where(['deleted'=>0,'status'=>1])->where('type','balance_number')->select();
+            $list2 = Db::table('base_user_payment')->field('id,name')->where(['deleted'=>0,'status'=>1])->where('type','balance_card')->select();
+            $list = [$list1,$list2];
+        }
+        // $list=SystemBase::field('id,name')->where(['type'=>$data['type'],'deleted'=>0,'status'=>1])->select();
         $this->success('获取成功',$list);
     }
 

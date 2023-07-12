@@ -215,6 +215,11 @@ class Goods extends Controller
             $ShopDataInsert['now_sell_status'] =rand(1,2);
             $ShopDataInsert['time'] =strtotime(date('Y-m-d H:i:00'));
 
+            $ShopDataInsert['open'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
+            $ShopDataInsert['height'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
+            $ShopDataInsert['low'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
+            $ShopDataInsert['close'] =(rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2);
+
             $senddata[$ShopDataInsert['media_id']]=$ShopDataInsert;
         }
         //发送消息
@@ -461,6 +466,13 @@ class Goods extends Controller
         if($user[0] == 1){
             //已登录-添加收藏
             $DataUserMyCollect = new DataUserMyCollect;
+            $m = $DataUserMyCollect->where([
+                'uid'  =>  $user[2],
+                'pid' =>  $data['pid']
+            ])->find();
+            if(!empty($m)){
+                $this->success('已添加');
+            }
             $DataUserMyCollect->cacheAlways()->save([
                 'uid'  =>  $user[2],
                 'pid' =>  $data['pid']

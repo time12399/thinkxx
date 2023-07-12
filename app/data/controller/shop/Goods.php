@@ -28,6 +28,7 @@ use app\data\service\ExpressService;
 use app\data\service\GoodsService;
 use think\admin\Controller;
 use think\admin\extend\CodeExtend;
+use think\facade\Db;
 
 /**
  * 商品数据管理
@@ -107,6 +108,9 @@ class Goods extends Controller
     {
         $this->mode = 'edit';
         $this->title = '编辑商品数据';
+        // 查商品分类
+        $cate = ShopGoodsCate::select()->toArray();
+        $this->assign('cates',$cate);
         ShopGoods::mForm('form', 'code');
     }
 

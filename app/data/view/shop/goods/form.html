@@ -39,18 +39,19 @@
         </div>
         <!--{/notempty}-->
 
-        <!--{notempty name='cates'}-->
         <label class="layui-form-item block relative">
-            <span class="help-label label-required-prev"><b>所属分类</b>Category Name</span>
+            <span class="help-label label-required-prev"><b>所属分类/公司</b></span>
             <select class="layui-select" lay-search name="cateids">
-                {foreach $cates as $cate}{if in_array($cate.id, $vo.cateids)}
-                <option selected value="{:arr2str($cate.ids)}">{:join(' ＞ ', $cate.names)}</option>
+                {foreach $cates as $cate}
+                {if isset($vo.cateids) and $vo.cateids eq $cate.id}
+                <option  selected value="{$cate.id}">{$cate.name}</option>
                 {else}
-                <option value="{:arr2str($cate.ids)}">{:join(' ＞ ', $cate.names)}</option>
-                {/if}{/foreach}
+                <option value="{$cate.id}">{$cate.name}</option>
+                {/if}
+                {/foreach}
             </select>
         </label>
-        <!--{/notempty}-->
+        
 
         <label class="layui-form-item block relative">
             <span class="help-label"><b>产品名称</b>Goods Name</span>
@@ -352,6 +353,70 @@
                 </tbody>
             </table>
         </div>
+
+
+        <div class="layui-form-item" id="GoodsSpecs">
+            <table class="layui-table margin-top-10">
+                <thead>
+                <tr>
+                    <th class="text-center nowrap pointer"  width="12%"><b>开始时间</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>结束时间</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>上涨 1 下跌 2</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>范围最小波动</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>范围最大波动</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>结束后定价</b> </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="rows in items track by $index">
+                    
+                    <td class="text-center layui-bg-gray">
+                        <label class="think-checkbox margin-0 full-width full-height block">
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{:date('Y-m-d h:m:s')}"  >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.sort|default=''}"  >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_low|default=''}"  >
+                        </label>
+                    </td>
+                    
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_low|default=''}"  >
+                        </label>
+                    </td>
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_top|default=''}"  >
+                        </label>
+                    </td>
+
+                    
+
+                    <td class="padding-0">
+                        <label>
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_top|default=''}"  >
+                        </label>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+
         <div class="layui-form-item layui-row layui-col-space15">
             <blockquote class="layui-elem-quote">
                 <p style="color:red">

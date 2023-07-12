@@ -76,7 +76,7 @@
 </script>
 
 <script type="text/html" id="type1">
-    {{d.type == 'balance'?'充值':d.type == 'withdraw_number'?'提现-数字货币':'提现-银行卡'}}
+    {{ d.type == 'balance_number'?'充值-数字货币':(d.type == 'balance_card'?'充值-银行卡':(d.type == 'withdraw_number'?'提现-数字货币':d.type == 'withdraw_card'?'提现-银行卡':d.type))}}
 </script>
 
 
