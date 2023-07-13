@@ -49,7 +49,46 @@ class Goods extends Controller
         $this->page = 10;
         Gateway::$registerAddress = '127.0.0.1:1238';
     }
-
+    private function shijian($m)
+    {
+    }
+    public function goodTimeSearch()
+    {
+        $user = $this->isuser();
+        if($user[0] == 1){
+            $data = $this->_vali([
+                'type.require' => '请选择时间',
+                'pid.require' => '请选择产品'
+            ]);
+            $datalist = Db::table('shop_data')
+                ->field('id,name,media_id,date,time,open,close,height,low')
+                ->where('media_id',$data['pid'])->order('id desc');
+            switch ($data['type']) {
+                case 1:
+                    // m1
+                    $datalist = $datalist->paginate(20);
+                    break;
+                case 2:
+                    // m5
+                    $datalist = $datalist->whereIn('i','05,10,15,20,25,30,35,40,45,50,55,00')->paginate(20);
+                    break;
+                case 3:
+                    // m15
+                    $datalist = $datalist->whereIn('i','15,30,45,00')->paginate(20);
+                    break;
+                case 4:
+                    // m30
+                    $datalist = $datalist->paginate(20);
+                    break;
+                // 可以有更多的 case
+                default:
+                    // 默认情况下执行的代码块
+                    $datalist = [];
+                    die;
+            }
+            $this->success($datalist);
+        }
+    }
     public function goodTimeClass()
     {
         $data = [
@@ -155,6 +194,7 @@ class Goods extends Controller
         $h = date('H');
         $i = date('i');
         $s = date('s');
+        $w = date('w');
         $dd = date('y-m-d h:i:s');
         $tt = time();
         $ShopDataInsert = [
@@ -164,6 +204,7 @@ class Goods extends Controller
             'h'=>$h,
             'i'=>$i,
             's'=>$s,
+            'w'=>$w,
             'date'=>$dd,
             'time'=>$tt
         ];
@@ -203,6 +244,8 @@ class Goods extends Controller
 
     public function sendMsg_code()
     {
+        $code = Db::table('system_data')->where('name','code')->find();
+
         $curlData = Cache::get('curl');
         $a = '';
         if($curlData['Code'] == 0){
@@ -235,9 +278,9 @@ class Goods extends Controller
         var_dump($a);
         die;
         $host = "https://alirmcom2.market.alicloudapi.com";
-        $path = "/query/comrms";
+        $path = "/query/comrms";    
         $method = "POST";
-        $appcode = "d25a6d8f884942ca811a19587c4be69f";
+        $appcode = $code['value'];
         $headers = array();
         array_push($headers, "Authorization:APPCODE " . $appcode);
         $querys = "symbols=USDCNH%2CSH000001%2CSHFEAU%2CCMEJY";
