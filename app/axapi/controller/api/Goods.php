@@ -49,6 +49,49 @@ class Goods extends Controller
         $this->page = 10;
         Gateway::$registerAddress = '127.0.0.1:1238';
     }
+
+    public function goodTimeClass()
+    {
+        $data = [
+            [
+                'id'=>1,
+                'name'=>'M1'
+            ],
+            [
+                'id'=>2,
+                'name'=>'M5'
+            ],
+            [
+                'id'=>3,
+                'name'=>'M15'
+            ],
+            [
+                'id'=>4,
+                'name'=>'M30'
+            ],
+            [
+                'id'=>5,
+                'name'=>'H1'
+            ],
+            [
+                'id'=>6,
+                'name'=>'H4'
+            ],
+            [
+                'id'=>7,
+                'name'=>'D1'
+            ],
+            [
+                'id'=>8,
+                'name'=>'W1'
+            ],
+            [
+                'id'=>9,
+                'name'=>'MN'
+            ]
+        ];
+        return $this->success('请求成功',$data);
+    }
     
     //生成数据
     public function shopData()
@@ -160,9 +203,6 @@ class Goods extends Controller
 
     public function sendMsg_code()
     {
-        var_dump(date('YmdHi00'));
-        var_dump(strtotime(date('Y-m-d H:i')));
-        die;
         $curlData = Cache::get('curl');
         $a = '';
         if($curlData['Code'] == 0){
@@ -287,6 +327,7 @@ class Goods extends Controller
             $ShopDataInsert['time2'] =strtotime($dd2);
             $ShopDataInsert['datetime3'] =$dd3;
             $ShopDataInsert['time3'] =strtotime($dd3);
+            $ShopDataInsert['time_ce'] =time()*1000;
 
 
             $ShopDataInsert['open'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
