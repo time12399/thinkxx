@@ -97,6 +97,9 @@ class Goods extends Controller
     {
         $this->mode = 'add';
         $this->title = '添加商品数据';
+        // 查商品分类
+        $cate = ShopGoodsCate::select()->toArray();
+        $this->assign('cates',$cate);
         ShopGoods::mForm('form', 'code');
     }
 

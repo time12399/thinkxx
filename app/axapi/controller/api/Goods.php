@@ -55,7 +55,7 @@ class Goods extends Controller
     public function goodTimeSearch()
     {
         $user = $this->isuser();
-        if($user[0] == 1){
+        if($user[0] == 1 or 1==1){
             $data = $this->_vali([
                 'type.require' => '请选择时间',
                 'pid.require' => '请选择产品'
@@ -65,20 +65,20 @@ class Goods extends Controller
                 ->where('media_id',$data['pid'])->order('id desc');
             switch ($data['type']) {
                 case 1:
-                    // m1
+                    // 1m
                     $datalist = $datalist->paginate(20);
                     break;
                 case 2:
-                    // m5
+                    // 5m
                     $datalist = $datalist->whereIn('i','05,10,15,20,25,30,35,40,45,50,55,00')->paginate(20);
                     break;
                 case 3:
-                    // m15
+                    // 15m
                     $datalist = $datalist->whereIn('i','15,30,45,00')->paginate(20);
                     break;
                 case 4:
-                    // m30
-                    $datalist = $datalist->paginate(20);
+                    // 30m
+                    $datalist = $datalist->whereIn('i','15,30,45,00')->paginate(20);
                     break;
                 // 可以有更多的 case
                 default:
@@ -93,40 +93,40 @@ class Goods extends Controller
     {
         $data = [
             [
-                'id'=>1,
-                'name'=>'M1'
+                'value'=>1,
+                'label'=>'M1'
             ],
             [
-                'id'=>2,
-                'name'=>'M5'
+                'value'=>2,
+                'label'=>'M5'
             ],
             [
-                'id'=>3,
-                'name'=>'M15'
+                'value'=>3,
+                'label'=>'M15'
             ],
             [
-                'id'=>4,
-                'name'=>'M30'
+                'value'=>4,
+                'label'=>'M30'
             ],
             [
-                'id'=>5,
-                'name'=>'H1'
+                'value'=>5,
+                'label'=>'H1'
             ],
             [
-                'id'=>6,
-                'name'=>'H4'
+                'value'=>6,
+                'label'=>'H4'
             ],
             [
-                'id'=>7,
-                'name'=>'D1'
+                'value'=>7,
+                'label'=>'D1'
             ],
             [
-                'id'=>8,
-                'name'=>'W1'
+                'value'=>8,
+                'label'=>'W1'
             ],
             [
-                'id'=>9,
-                'name'=>'MN'
+                'value'=>9,
+                'label'=>'MN'
             ]
         ];
         return $this->success('请求成功',$data);
@@ -140,13 +140,175 @@ class Goods extends Controller
         $code = sysqueue($title, $command, $later = 0, $data = [], $rscript = 1, $loops = 1);
         var_dump($code);
     }
-    public function getAllCid()
-    {
-        //查看全部在线cid
-        $count1 = Gateway::getAllClientCount();
-        var_dump($count1);
-    }
 
+    /**
+     * @return void
+     * 同步历史记录，按开始结束时间
+     */
+    private function tongbu()
+    {
+
+        // 历史_按开始结束时间v2
+        function getdata($item,$code)
+        {
+            $yesterday = strtotime('yesterday');
+//            dump(strtotime(date('Y-m-d 23:59:59', $yesterday)));
+
+            // 如果不是周六周日 每分钟更新一次
+
+            // 历史_按开始结束时间v2
+            if (date('w') != 6 && date('w') != 0)
+            {
+                $a = date('Y-m-d H:i:s', time());
+                $b = date('Y-m-d H:i:s', time() - 490 * 60);
+//                $a = date('Y-m-d H:i:s',$yesterday);
+//                $b = date('Y-m-d H:i:s', $yesterday - 490 * 60);
+
+                $a = urlencode($a);
+                $b = urlencode($b);
+
+
+                $host = "http://alirmcom2.market.alicloudapi.com";
+                $path = "/query/comkm2v2";
+                $method = "GET";
+                $appcode = $code['value'];
+                $headers = array();
+                array_push($headers, "Authorization:APPCODE " . $appcode);
+                $querys = "dateed={$a}&datest={$b}&period=1M&symbol={$item['num_code']}&withlast=1";
+                $bodys = "";
+                $url = $host . $path . "?" . $querys;
+
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+                curl_setopt($curl, CURLOPT_URL, $url);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($curl, CURLOPT_FAILONERROR, false);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_HEADER, false);
+                if (1 == strpos("$" . $host, "https://")) {
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+                }
+                $data = curl_exec($curl);
+
+//                Cache::set('curldata' . $item['num_code'], $data, 0);
+//                $data = Cache::get('curldata' . $item['num_code']);
+
+
+                $data = (json_decode($data, true)['Obj']);
+                dump($data);
+                $data = (explode(';', $data));
+                if ($data[0] != '') {
+                    foreach ($data as $datum) {
+                        $d = explode(',', $datum);
+                        //            dump(date('Y-m-d H:i:s',$d[0]));
+                        // 收 开 高 低
+                        //            dump($d[1],$d[2],$d[3],$d[4]);
+                        $ins_date = [
+                            'media_id' => $item['id'],
+                            'y' => date('Y', $d[0]),
+                            'm' => date('m', $d[0]),
+                            'd' => date('d', $d[0]),
+                            'h' => date('H', $d[0]),
+                            'i' => date('i', $d[0]),
+                            's' => date('s', $d[0]),
+                            'w' => date('w', $d[0]),
+                            'date' => date('Y-m-d H:i:s', $d[0]),
+                            'time' => $d[0],
+                            'name' => $item['name'],
+                            'close' => $d[1],
+                            'open' => $d[2],
+                            'height' => $d[3],
+                            'low' => $d[4],
+                        ];
+
+                        $m = ShopData::where('time', $d[0])->where('name', $item['name'])->find();
+                        if ($m == NULL) {
+                            $m = ShopData::insert($ins_date);
+                            if ($m) {
+                                dump($m . '新增成功');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 按分页查询
+        function getdatapage($item,$code)
+        {
+            if (1 == 2) {
+                $host = "http://alirmcom2.market.alicloudapi.com";
+                $path = "/query/comkmv2";
+                $method = "GET";
+                $appcode = $code['value'];
+                $headers = array();
+                array_push($headers, "Authorization:APPCODE " . $appcode);
+                $querys = "period=1M&pidx=1&psize=100&symbol={$item['num_code']}&withlast=1";
+                $bodys = "";
+                $url = $host . $path . "?" . $querys;
+
+                $curl = curl_init();
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+                curl_setopt($curl, CURLOPT_URL, $url);
+                curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($curl, CURLOPT_FAILONERROR, false);
+                curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl, CURLOPT_HEADER, false);
+                if (1 == strpos("$" . $host, "https://")) {
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+                }
+                $curlData = (curl_exec($curl));
+                Cache::set('curldatapage' . $item['num_code'], $curlData, 0);
+            }
+            $data = Cache::get('curldatapage'.$item['num_code']);
+            $data = (json_decode($data, true)['Obj']);
+            $data = (explode(';', $data));
+            foreach ($data as $datum) {
+                $d = explode(',', $datum);
+                $ins_date = [
+                    'media_id' => $item['id'],
+                    'y' => date('Y', $d[0]),
+                    'm' => date('m', $d[0]),
+                    'd' => date('d', $d[0]),
+                    'h' => date('H', $d[0]),
+                    'i' => date('i', $d[0]),
+                    's' => date('s', $d[0]),
+                    'w' => date('w', $d[0]),
+                    'date' => date('Y-m-d H:i:s', $d[0]),
+                    'time' => $d[0],
+                    'name' => $item['name'],
+                    'close' => $d[1],
+                    'open' => $d[2],
+                    'height' => $d[3],
+                    'low' => $d[4],
+                ];
+                $m = ShopData::where('time', $d[0])->where('name', $item['name'])->find();
+                if ($m == NULL) {
+                    $m = ShopData::insert($ins_date);
+                    if ($m) {
+                        dump($m . '新增成功');
+                    }
+                }
+            }
+
+        }
+
+        $code = Db::table('system_data')->where('name', 'code')->cache(true, 60000)->find();
+        // 查询有效产品数据
+        $goodsList = Db::table('shop_goods')
+            ->field('id,name,num_code,isopen,status')
+            ->where('deleted',0)
+            ->where('status',1)
+            ->cache(true,60000)->select()->toArray();
+
+        foreach ($goodsList as $item)
+        {
+//            $data = getdata($item,$code);
+            $data = getdatapage($item,$code);
+        }
+    }
     /**
      * @return void
      * 定时任务_发送数据 SendMinuteMsgSend
@@ -154,7 +316,13 @@ class Goods extends Controller
      */
     public function sendMsg_m()
     {
-        $this->sendMsg_m1(9);
+        /*
+        $d = 7;
+        $data = ShopData::where('media_id',$d)->order('time asc')->select();
+        $this->success($d,$data);
+        */
+        $this->tongbu();die;
+        $this->sendMsg_m1(1);
     }
     public function sendMsg_m1($t=1)
     {
@@ -165,125 +333,98 @@ class Goods extends Controller
             var_dump($code);
             die;
         }
-
-        $goods = Cache::get('goods_m');
-        if(empty($goods)) {
-            $sql = 'SELECT sg.*, sd.* ,sd.id as last_id
-                    FROM shop_goods sg
-                    JOIN shop_data sd ON sg.id = sd.media_id
-                    WHERE sd.id = (
-                      SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
-                    );
-                    ';
-            $list = Db::query($sql);
-            Cache::set('goods_m',$list,6000);
+        // 开始请求 获取code
+        $code = Cache::get('code_value');
+        if(empty($code)){
+            $code = Db::table('system_data')->where('name','code')->cache(true,60000)->find()['value'];
+            Cache::set('code_value',$code,0);
         }
-        $goods = Cache::get('goods_m');
-        if(!empty($goods)){
-            $sql = 'SELECT *,k_low ,id as media_id ,k_low as val   FROM shop_goods;';
-            $list = Db::query($sql);
-            Cache::set('goods_m',$list,6000);
-        }
+        $code = Cache::get('code_value');
 
-        $goods = Cache::get('goods_m');
-
-        $xs_num = 1000000;
-        $y = date('Y');
-        $m = date('m');
-        $d = date('d');
-        $h = date('H');
-        $i = date('i');
-        $s = date('s');
-        $w = date('w');
-        $dd = date('y-m-d h:i:s');
-        $tt = time();
-        $ShopDataInsert = [
-            'y'=>$y,
-            'm'=>$m,
-            'd'=>$d,
-            'h'=>$h,
-            'i'=>$i,
-            's'=>$s,
-            'w'=>$w,
-            'date'=>$dd,
-            'time'=>$tt
-        ];
-        $a=0;
-        $b=0;
+        // 获取产品
+        $goodsList = Db::table('shop_goods')
+            ->field('id,name,num_code,isopen,status')
+            ->where('deleted',0)
+            ->cache(true,60000)->select()->toArray();
+        Cache::set('goods_data',$goodsList);
         $senddata1 = [];
-        foreach ($goods as $good) {
+        $a = 0;
+        foreach ($goodsList as $item) {
             $a++;
-            //生成随机数据
-            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
-            $s_bd = number_format($sj/$xs_num,6);
-            // 每秒随机 + -
-            $is_bd = mt_rand(0,100);
-            $s_val = $good['val'];
-            $ts_v = $is_bd >= 50?$s_val+$s_bd:$s_val-$s_bd;
-            $ShopDataInsert['name'] =$good['name'];
-            $ShopDataInsert['media_id'] =$good['media_id'];
-            $ShopDataInsert['val'] = (string)$ts_v;
-            $ShopDataInsert['now_buy'] =(string)$ts_v;
-            $ShopDataInsert['now_sell'] =(string)$ts_v;
-            // dump($ShopDataInsert);
-            $m = ShopData::insert($ShopDataInsert);
-            if($m){
-                $b++;
+            echo "请求{$a}次";
+            // 如果不是周六周日 每分钟更新一次
+            $curlData = $this->curlgood($code,$item['num_code']);
+            Cache::set('curl'.$item['num_code'],$curlData,0);
+            if (date('w') == 6 || date('w') == 0)
+            {
+                $curlData = Cache::get('curl'.$item['num_code']);
+            }else{
+                $curlData = $this->curlgood($code,$item['num_code']);
+                Cache::set('curl'.$item['num_code'],$curlData,0);
             }
-            $senddata1[$ShopDataInsert['media_id']]=$ShopDataInsert;
+//            $curlData = Cache::get('curl'.$item['id']);
+            // 时间 开盘 最高 最低 收盘为当前
+//            dump($curlData);
+//            die;
+            $panData = explode(',',$curlData['Obj']['M1']);
+            $panDataClose = ($curlData['Obj']['P']);
+            $insetdata = [
+                //获取产品id
+                'media_id' => $item['id'],
+                // 时间
+                'y' => date('Y', $curlData['Obj']['Tick']),
+                'm' => date('m', $curlData['Obj']['Tick']),
+                'd' => date('d', $curlData['Obj']['Tick']),
+                'h' => date('H', $curlData['Obj']['Tick']),
+                'i' => date('i', $curlData['Obj']['Tick']),
+                's' => date('s', $curlData['Obj']['Tick']),
+                'w' => date('w', $curlData['Obj']['Tick']),
+                'date' => date('Y-m-d H:i:s', $curlData['Obj']['Tick']),
+                'time' => $curlData['Obj']['Tick'],
+                'name' => $curlData['Obj']['S'],
+                'open' => $panData[1],
+                'close' => $panDataClose,
+                'height' => $panData[2],
+                'low' => $panData[3],
+            ];
+            $m = ShopData::where('time', $curlData['Obj']['Tick'])->where('name', $item['num_code'])->find();
+            dump($insetdata,$m);
+//            die;
+            if ($m == NULL) {
+                $m = ShopData::insert($insetdata);
+                if ($m) {
+                    dump($m . '新增成功');
+                }
+            }
+            dump($insetdata);
         }
+        // 请求保存完成/
+
         //发送消息
         $senddata['type']='index_goods_m';
         $senddata['data']=$senddata1;
         $req_data = json_encode($senddata);
         Gateway::sendToAll($req_data);
 
-        return [$a,$b];
+        return [$a,'ok'];
     }
     /** end */
 
-    public function sendMsg_code()
+    /**
+     * @param $code
+     * @param $good
+     * @return mixed
+     * 第一个 行情查询
+     */
+    private function curlgood($code,$good)
     {
-        $code = Db::table('system_data')->where('name','code')->find();
-
-        $curlData = Cache::get('curl');
-        $a = '';
-        if($curlData['Code'] == 0){
-            foreach ($curlData['Obj'] as $item) {
-                dump($item);
-                // 时间
-                dump(date('Y-m-d H:s:i',$item['Tick']));
-                // 名字
-                /* dump($item['FS']);
-                // 最新价
-                dump($item['P']);
-                // 买入
-                dump($item['B1']);
-                // 卖出
-                dump($item['S1']);
-                // 当天开盘价
-                dump($item['O']);
-                // 当天最高价
-                dump($item['H']);
-                // 当天最低价
-                dump($item['L']);
-                // 昨收价
-                dump($item['YC']); */
-                //
-                dump($item['FS']);
-                $a .= $item['FS'].',';
-            }
-        }
-        $a = rtrim($a,',');
-        var_dump($a);
-        die;
-        $host = "https://alirmcom2.market.alicloudapi.com";
-        $path = "/query/comrms";    
-        $method = "POST";
-        $appcode = $code['value'];
+        $host = "http://alirmcom2.market.alicloudapi.com";
+        $path = "/query/com";
+        $method = "GET";
+        $appcode = $code;
         $headers = array();
         array_push($headers, "Authorization:APPCODE " . $appcode);
-        $querys = "symbols=USDCNH%2CSH000001%2CSHFEAU%2CCMEJY";
+        $querys = "symbol={$good}&withks=1&withticks=0";
         $bodys = "";
         $url = $host . $path . "?" . $querys;
 
@@ -300,7 +441,8 @@ class Goods extends Controller
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         }
         $curlData = json_decode(curl_exec($curl),true);
-        Cache::set('curl',$curlData,0);
+        dump($curlData);
+        return $curlData;
     }
     /**
      * @return void
@@ -324,16 +466,16 @@ class Goods extends Controller
             $sql = 'SELECT sg.*, sd.* ,sd.id as last_id
                     FROM shop_goods sg
                     JOIN shop_data sd ON sg.id = sd.media_id
-                    WHERE sd.id = (
-                      SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
-                    );
-                    ';
+                    WHERE 	sg.status = 1 and sg.deleted = 0 and 
+                           sd.id = (
+                              SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
+                            );';
             $list = Db::query($sql);
             Cache::set('goods_s',$list,59);
         }
         $goods = Cache::get('goods_s');
 
-        $xs_num = 1000000;
+        $xs_num = 100000;
         $dd = date('Y-m-d h:i:s');
         $tt = time();
 
@@ -344,12 +486,28 @@ class Goods extends Controller
         $senddata = [];
         foreach ($goods as $good) {
             //生成随机数据
-            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
+            $sell_bd = explode('-',$good['k_sell_bd']);
+            $num1 = 10 ** strlen(substr(strrchr($sell_bd[0], "."), 1));
+            $num2 = 10 ** strlen(substr(strrchr($sell_bd[1], "."), 1));
+
+            $num3 = 10 ** strlen(substr(strrchr($good['height'], "."), 1));
+
+            // 产品高度 - 整数
+            $good_height = $num3*$good['height'];
+            // 获取整数随机
+            $intsj = mt_rand($num1*$sell_bd[0],$num2*$sell_bd[1]);
+            dump(((rand(1, 10)>=5?$good_height+$intsj:$good_height-$intsj))/$num3);
+//            dump(rand(1, 10)>=5?$good['height']*$num3,$intsj);die;
+
+            die;
+            $sj = mt_rand(0.00001*$xs_num,0.00005*$xs_num);
+//            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
             $s_bd = number_format($sj/$xs_num,6);
             // 每秒随机 + -
             $is_bd = mt_rand(0,100);
-            $s_val = $good['val'];
+            $s_val = $good['height'];
             $ts_v = $is_bd >= 50?$s_val+$s_bd:$s_val-$s_bd;
+            dump($good['name']);die;
             $ShopDataInsert['name'] =$good['name'];
             $ShopDataInsert['media_id'] =$good['media_id'];
             $ShopDataInsert['val'] = (string)$ts_v;
@@ -373,10 +531,10 @@ class Goods extends Controller
             $ShopDataInsert['time_ce'] =time()*1000;
 
 
-            $ShopDataInsert['open'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
-            $ShopDataInsert['height'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
-            $ShopDataInsert['low'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
-            $ShopDataInsert['close'] =strval((rand(1, 10))>5?rand(1, 2)+$ts_v:$ts_v-rand(1, 2));
+            $ShopDataInsert['open'] =strval($good['open']);
+            $ShopDataInsert['height'] =strval($good['height']);
+            $ShopDataInsert['low'] =strval($good['low']);
+            $ShopDataInsert['close'] =strval($good['close']);
 
             $senddata[$ShopDataInsert['media_id']]=$ShopDataInsert;
         }
@@ -514,17 +672,17 @@ class Goods extends Controller
         //返回最新数据
         $f = Db::table('shop_data')->where('a.media_id',$data['pid'])
         ->alias('a')
-        ->field('b.id,b.name,b.title,a.now_buy,a.now_sell')
+        ->field('b.id,b.name,b.title,a.now_buy,a.now_sell,height')
         ->leftjoin('shop_goods b','b.id = a.media_id')
         ->order('id desc')->find();
         $f['now_buy_status']=0;
         $f['now_sell_status']=0;
 
-        $f['now_buy_str'] = strval($f['now_buy']);
-        $f['now_sell_str'] = strval($f['now_sell']);
+        $f['now_buy_str'] = strval($f['height']);
+        $f['now_sell_str'] = strval($f['height']);
         
-        $f['now_buy'] = $this->str_k_v($f['now_buy']);
-        $f['now_sell'] = $this->str_k_v($f['now_sell']);
+        $f['now_buy'] = $this->str_k_v($f['height']);
+        $f['now_sell'] = $this->str_k_v($f['height']);
 
 
         
@@ -704,88 +862,43 @@ class Goods extends Controller
     public function getGoods()
     {
         $user = $this->isuser();
-        //未登录
-        // if($user[0] == 9)
-        // {
-            // 商品数据处理
-            // $query = ShopGoods::mQuery()->like('name,marks,cateids,payment')->equal('code,vip_entry');
-            // $result = $query->where(['deleted' => 0, 'status' => 1])->order('sort desc,id desc')->field('id,sort,name,k_low,k_top,k_status,k_percent')->page(true, false, false, 2);
-            // if (count($result['list']) > 0) GoodsService::bindData($result['list']);
-            
-            /* $list = Db::table('shop_goods')
-                ->alias('b')
-                ->leftjoin('shop_data a','a.media_id = b.id')
-                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,a.date,a.date,a.now_buy,a.now_sell')
-                ->cache(true,60)
-                ->paginate($this->page);
-                */
-            /* $sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
-                        FROM shop_goods u
-                        JOIN (
-                            SELECT media_id, MAX(time) AS max_time
-                            FROM shop_data
-                            GROUP BY media_id
-                        ) t ON u.id = t.media_id
-                        JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
-            $list = Db::query($sql); */
-        // }
 
         if($user[0] == 1){
             //已登录-查看自己的收藏
-            // $list = DataUserMyCollect::with('ShopGoods')->select();
-            // SELECT a.*,b.* FROM data_user_my_collect as a LEFT JOIN shop_goods as b ON a.ppid = b.id
-            // var_dump($list);
-            /*
-            $list = Db::table('data_user_my_collect')
-                ->alias('a')
-                ->field('b.id,b.sort,b.name,b.k_low,b.k_top,b.k_status,b.k_percent,c.date,c.date,c.now_buy,c.now_sell')
-                ->leftjoin('shop_goods b','a.pid = b.id')
-                ->where('a.uid',1)
-                ->leftjoin('shop_data c','c.media_id = b.id')
-                ->where(['a.is_deleted' => 0])
-                ->cache(true,60)
-                ->paginate($this->page);*/
 
-                /*$sql = '
-                SELECT my.pid as myid , u.id , u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
-                FROM shop_goods u
-                JOIN (
-                    SELECT media_id, MAX(time) AS max_time
-                    FROM shop_data
-                    GROUP BY media_id
-                ) t ON u.id = t.media_id
-                JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time
-								join data_user_my_collect my on my.pid = u.id where my.uid = ? order by my.sort desc, my.id desc
-                ';
-
-            $list = Db::query($sql,[$user[2]]);*/
-            $list = DB::table('data_user_my_collect')
+            /* $list = DB::table('data_user_my_collect')
                 ->alias('my')
                 ->field('my.id as id,g.id as myid,g.name,g.name,g.k_low,g.k_top,g.k_status,g.k_percent')
                 ->leftJoin('shop_goods g','my.pid = g.id')
-                ->where('my.uid',$this->uuid)->select()->toArray();
+                ->where('my.uid',$this->uuid)->select()->toArray(); */
+            $sql = 'SELECT my.id as id ,sg.id as myid,sd.id as data_id,sd.media_id,sd.height,sd.low,sg.name,sg.k_percent,sg.k_status,sg.k_low,sg.k_top
+                    FROM shop_goods sg
+                    JOIN shop_data sd ON sg.id = sd.media_id
+                    JOIN data_user_my_collect AS my ON my.pid = sg.id
+                    WHERE sg.status = 1 and sg.deleted = 0 and sd.id = (
+                      SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
+                    ) and my.uid = '.$this->uuid.'
+                    order by my.id desc
+                    ;';
+            $list = Db::query($sql);
             $data_info = '用户商品数据';
-            
         }else{
             // $this->error('用户登录失败！', '{-null-}', 401);
-            /*$sql = 'SELECT u.id, u.sort, u.name, o.val, o.time,u.k_low,u.k_top,u.k_status,u.k_percent,o.date,o.date,o.now_buy,o.now_sell
-                        FROM shop_goods u
-                        JOIN (
-                            SELECT media_id, MAX(time) AS max_time
-                            FROM shop_data
-                            GROUP BY media_id
-                        ) t ON u.id = t.media_id
-                        JOIN shop_data o ON t.media_id = o.media_id AND t.max_time = o.time order by u.sort desc';
-            $list = Db::query($sql);*/
-            $list = Db::table('shop_goods')->select()->toArray();
+//            $list = Db::table('shop_goods')->select()->toArray();
+            $sql = 'SELECT sg.id as id,sd.id as data_id,sd.media_id,sd.height,sd.low,sg.name,sg.k_percent,sg.k_status,sg.k_low,sg.k_top
+                FROM shop_goods sg
+                JOIN shop_data sd ON sg.id = sd.media_id
+                WHERE sg.status = 1 and sg.deleted = 0 and sd.id = (
+                  SELECT MAX(id) FROM shop_data WHERE media_id = sg.id
+                ) and sg.id <=  10 order by sg.id desc';
+            $list = Db::query($sql);
             $data_info = '全部商品数据';
         }
         function str_k_v($srt){
-
             [$a,$b] = explode('.',$srt);
             if(strlen($a) >= 3){
                 $v1 = $a.'.';
-                
+
                 if(strlen($b) >2){
                     $v2 = substr($b,0,2);
                     $v3 = substr($b,2,1);
@@ -806,13 +919,13 @@ class Goods extends Controller
         }
 
         foreach($list as &$v){
-            $v1 = Db::table('shop_data')->where('')->order('id desc')->find();
-            $v['now_sell_arr'] = str_k_v($v1['now_sell']);
-            $v['now_buy_arr'] = str_k_v($v1['now_buy']);
+
+            $v['now_sell_arr'] = str_k_v($v['height']);
+            $v['now_buy_arr'] = str_k_v($v['height']);
 
 
-            $v['now_buy'] = $v1['now_buy'];
-            $v['now_sell'] = $v1['now_sell'];
+            $v['now_buy'] = $v['height'];
+            $v['now_sell'] = $v['height'];
 
             $v['time_v'] = date('H:i:s');
             $v['time_r_v'] = rand(5,100);
@@ -822,13 +935,5 @@ class Goods extends Controller
             $v['now_buy_status'] = 0;
         }
         $this->success($data_info, ['data'=>$list]);
-    }
-
-    /**
-     *  获取配送区域
-     */
-    public function getRegion()
-    {
-        $this->success('获取区域成功', ExpressService::region(3, 1));
     }
 }

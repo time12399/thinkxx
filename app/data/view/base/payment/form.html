@@ -15,13 +15,13 @@
             <label class="block full-width">
                 <select name="type" class="layui-select" lay-filter="payment-type" lay-search>
                     {if isset($vo.type)}
-                    <option {if condition="$vo.type == 'balance_number'"} selected {/if} value="balance">充值-数字货币</option>
-                    <option {if condition="$vo.type == 'balance_card'"} selected {/if} value="balance">充值-银行卡</option>
+                    <option {if condition="$vo.type == 'balance_number'"} selected {/if} value="balance_number">充值-数字货币</option>
+                    <option {if condition="$vo.type == 'balance_card'"} selected {/if} value="balance_card">充值-银行卡</option>
                     <option {if condition="$vo.type == 'withdraw_number'"} selected {/if}  value="withdraw_number">提现-数字货币</option>
                     <option {if condition="$vo.type == 'withdraw_card'"} selected {/if}  value="withdraw_card">提现-银行卡</option>
                     {else /}
-                    <option selected value="balance_number">充值-数字货币</option>
-                    <option selected value="balance_card">充值-银行卡</option>
+                    <option value="balance_number">充值-数字货币</option>
+                    <option value="balance_card">充值-银行卡</option>
                     <option value="withdraw_number">提现-数字货币</option>
                     <option value="withdraw_card">提现-银行卡</option>
                     {/if}

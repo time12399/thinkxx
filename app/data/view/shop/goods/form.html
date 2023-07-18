@@ -304,8 +304,10 @@
                 <tr>
                     <th class="text-center nowrap pointer"  width="12%"><b>上架</b> </th>
                     <th class="text-center nowrap pointer"  width="10%"><b>排序</b> </th>
-                    <th class="text-center nowrap pointer"  width="10%"><b>最小波动</b> </th>
-                    <th class="text-center nowrap pointer"  width="10%"><b>最大波动</b> </th>
+                    
+                    <th class="text-center nowrap pointer"  width="10%"><b>sell_波动范围</b> </th>
+                    <th class="text-center nowrap pointer"  width="10%"><b>buy_波动范围</b> </th>
+
                     <th class="text-center nowrap pointer"  width="10%"><b>当日最小值</b> </th>
                     <th class="text-center nowrap pointer"  width="10%"><b>当日最大值</b> </th>
                 </tr>
@@ -327,13 +329,13 @@
 
                     <td class="padding-0">
                         <label>
-                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_low|default=''}" name="point_low" >
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_sell_bd|default=''}" name="k_sell_bd" >
                         </label>
                     </td>
 
                     <td class="padding-0">
                         <label>
-                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.point_top|default=''}" name="point_top" >
+                            <input class="layui-input border-0 padding-left-0 text-center" value="{$vo.k_buy_db|default=''}" name="k_buy_db" >
                         </label>
                     </td>
 

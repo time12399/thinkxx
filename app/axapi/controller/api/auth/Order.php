@@ -35,6 +35,8 @@ use stdClass;
 use think\admin\extend\CodeExtend;
 use think\exception\HttpResponseException;
 
+use think\facade\Db;
+
 
 
 use app\axapi\service\UserRebateService;
@@ -103,6 +105,87 @@ class Order extends Auth
             ->paginate($this->page);
         $this->success('获取订单数据成功！', $result);
     }
+
+    /**
+     * @return void
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     * 平仓
+     */
+    public function closeTrade()
+    {
+        $data=$this->_vali([
+            'pid.require' => '订单不存在',
+        ]);
+        // 检查用户状态
+        $this->checkUserStatus();
+        // 检查订单
+        $order = Db::table('shop_order')->where('id',$data['pid'])->find();
+
+        if(empty($order)){
+            $this->error('订单不存在');
+        }
+        if($order['k_status'] == 2){
+//            $this->error('已平仓');
+        }
+        // 当前价格大于小于支付价格
+        // 获取当前时间价格
+        $goods_last = Db::table('shop_data')->where('media_id',$order['ppid'])->order('id desc')->find();
+        // 盈利金额
+        $price1 = number_format($goods_last['val']-$order['create_price'],5)*100000*$order['k_num'];
+        $price1 = ($order['k_num']*1000)+$price1;
+        $db1 = Db::table('data_user')->where('id',$order['uuid'])->inc('my_total',$price1);
+        if($price1 >= 0){
+            $k_iswin = 1;
+        }else{
+            $k_iswin = 2;
+        }
+        $orderdata = [
+            'id'=>$order['id'],
+            'finish_price'=>$goods_last['val'],
+            'end_at'=>date('Y-m-d H:i:s'),
+            'k_money'=> $price1,
+            'k_iswin'=>$k_iswin,
+            'k_status'=>2,
+        ];
+
+        $k_buy_status = $order['k_buy_status'] == 1?2:1;
+        $order_z1 = [
+            'uuid'=>$this->uuid,
+            'ppid'=>$goods_last['media_id'],
+            'orderid'=>$order['id'],
+            'pname'=>$goods_last['name'],
+            'k_buy_status'=>$k_buy_status,
+            'is_filled'=>1,
+            'k_num'=>$order['k_num'],
+            'end_price'=>$goods_last['val'],
+            'end_at'=>date('Y-m-d H:i:s'),
+        ];
+        try {
+            // 写入商品数据
+            $this->app->db->transaction(function () use ($db1,$orderdata,$order_z1) {
+                // 修改状态
+                ShopOrder::mk()->update($orderdata);
+                // 增减余额
+                $db1->update();
+                // 新增平仓子订单
+                Db::table('shop_order_zi1')->insert($order_z1);
+            });
+            // 触发订单创建事件
+            $this->app->event->trigger('ShopOrderCreate', $order['order_no']);
+            // 组装订单商品数据
+            // $order['items'] = $items;
+            // 返回处理成功数据
+            $this->success('操作成功',[]);
+        } catch (HttpResponseException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            $this->error("操作失败，{$exception->getMessage()}");
+        }
+
+        $this->success('操作成功');
+    }
     /**
      * 提交订单
      */
@@ -114,7 +197,7 @@ class Order extends Auth
             'status.require' => '请填写状态',
             'price.require' => '请填写价格',
             'myamount_.require'=>'请选择手数',
-            'type.require'=>'请选择手数'
+            'type.require'=>'请选择类型'
         ]);
         // 检查用户状态
         $this->checkUserStatus();
@@ -135,6 +218,9 @@ class Order extends Auth
         // echo $today;
         [$open,$close]= explode('~',$goodsInfo['opentime_'.$today]);
         $now_time = date('H:i:s');
+        //获取最后下单金额
+        $last_price = Db::table('shop_data')->where('media_id',$data['pid'])->find();
+        $last_price = $last_price['val'];
         if($open<$now_time && $now_time<$close){
             //开始处理下单
             $order['uuid'] = $this->uuid;
@@ -151,8 +237,10 @@ class Order extends Auth
                 'amount_goods'     => $myamount_,
                 'payment_amount'  => $myamount_,
                 'amount_discount'  => $myamount_,
+                'k_num'  => $data['myamount_'],
                 'payment_status'  => 1,
-                'create_price'  => $data['price'],
+//                'create_price'  => $data['price'],
+                'create_price'  => $last_price,
                 'k_buy_status'  => $data['status'],
                 'status'  => 4,
                 'k_money'=>0,
