@@ -1,0 +1,66 @@
+<form action="/data/user.balance/add.html" method="post" data-auto="true" class="layui-form layui-card"
+    onsubmit="return false" novalidate="novalidate" autocomplete="off">
+    <div class="layui-card-body padding-left-40">
+        <fieldset class="layui-form-item">
+            <legend>用户资料</legend>
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-xs3">
+                    <div class="layui-table">
+                        <div class="headimg WechatUserHead" data-lazy-src="/static/theme/img/headimg.png"
+                            data-tips-image="" data-lazy-loaded="true"
+                            style="background-image: url(&quot;/static/theme/img/headimg.png&quot;);"></div>
+                    </div>
+                </div>
+                <div class="layui-col-xs9"><label class="layui-form-item relative block"><span
+                            class="help-label"><b>微信昵称</b>Wechat Nickname</span><input class="layui-input layui-bg-gray"
+                            data-bind="nickname" placeholder="请使用微信扫码登录" readonly="" value=""><span
+                            class="layui-anim notselect"
+                            style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 12px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span></label><label
+                        class="relative block"><span class="help-label"><b>微信标识</b>Wechat Openid</span><input
+                            class="layui-input layui-bg-gray" data-bind="openid" placeholder="请使用微信扫码登录" readonly=""
+                            value=""><span class="layui-anim notselect"
+                            style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 12px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span></label>
+                </div>
+            </div>
+        </fieldset><label class="layui-form-item layui-hide label-required-prev"><span
+                class="help-label"><b>充值单号</b>Code</span><input class="layui-input layui-bg-gray" name="code"
+                placeholder="请输入充值单号" readonly="" required="" value="B2023071956371894712"><span
+                class="layui-anim notselect"
+                style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 0px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span></label><label
+            class="layui-form-item layui-hide label-required-prev"><span
+                class="help-label"><b>余额充值名称</b>Name</span><input class="layui-input" maxlength="100" name="name"
+                placeholder="请输入余额充值名称" required="" value="后台余额充值"><span class="layui-anim notselect"
+                style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 0px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span></label><label
+            class="layui-form-item relative block label-required-prev"><span
+                class="help-label"><b>充值账户余额</b>Amount</span><input class="layui-input" data-blur-number="2"
+                data-value-max="999999999.99" maxlength="12" name="amount" placeholder="请输入充值账户余额" required=""
+                value="0.00"><span class="layui-anim notselect"
+                style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 12px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span><span
+                class="help-block">请输入要充值的金额，充值后可以使用此余额购买商品</span></label>
+        <div class="layui-form-item label-required-prev"><span class="help-label"><b>充值网络</b>Upgrade</span><select
+                class="layui-select" name="network" lay-filter="upgrade">
+                <option value="1">-- USDT-TRC20 --</option>
+                <option value="2">-- USDT-ERC20 --</option>
+            </select>
+            <div class="layui-unselect layui-form-select">
+                <div class="layui-select-title"><input type="text" placeholder="请选择" value="-- USDT-TRC20 --"
+                        readonly="" class="layui-input layui-unselect"><span class="layui-anim notselect"
+                        style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 0px; right: 10px; padding-top: 0px; line-height: 38px; width: 30px;"></span><i
+                        class="layui-edge"></i></div>
+                <dl class="layui-anim layui-anim-upbit">
+                    <dd lay-value="1" class="layui-this">-- USDT-TRC20 --</dd>
+                    <dd lay-value="2" class="">-- USDT-ERC20 --</dd>
+                </dl>
+            </div><span class="help-block">请选择目标升级等级，当用户低于当前等级时会进行用户升级操作</span>
+        </div>
+        <!-- <div class="layui-form-item label-required-prev"><span class="help-label"><b>升级用户等级</b>Upgrade</span><select class="layui-select" name="upgrade" lay-filter="upgrade"><option value="0">-- 不升级 --</option></select><span class="help-block">请选择目标升级等级，当用户低于当前等级时会进行用户升级操作</span></div> -->
+        <div class="layui-form-item relative block"><span class="help-label"><b>余额充值备注</b>Remark</span><label
+                class="relative block"><textarea class="layui-textarea" name="remark"
+                    placeholder="请输入余额充值备注"></textarea><span class="layui-anim notselect"
+                    style="display: block; position: absolute; text-align: center; color: rgb(204, 68, 68); font-size: 12px; z-index: 2; top: 0px; right: 10px; padding-top: 0px; line-height: 32px; width: 30px;"></span></label>
+        </div>
+    </div>
+    <div class="hr-line-dashed"></div><input name="uuid" type="hidden" value="2">
+    <div class="layui-form-item text-center"><button class="layui-btn" type="submit">保存数据</button><button
+            class="layui-btn layui-btn-danger" data-close="" data-confirm="确定要取消编辑吗？" type="button">取消编辑</button></div>
+</form>

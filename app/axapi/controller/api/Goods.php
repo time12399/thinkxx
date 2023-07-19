@@ -499,7 +499,6 @@ class Goods extends Controller
             dump(((rand(1, 10)>=5?$good_height+$intsj:$good_height-$intsj))/$num3);
 //            dump(rand(1, 10)>=5?$good['height']*$num3,$intsj);die;
 
-            die;
             $sj = mt_rand(0.00001*$xs_num,0.00005*$xs_num);
 //            $sj = mt_rand($good['point_low']*$xs_num,$good['point_top']*$xs_num);
             $s_bd = number_format($sj/$xs_num,6);
@@ -507,7 +506,6 @@ class Goods extends Controller
             $is_bd = mt_rand(0,100);
             $s_val = $good['height'];
             $ts_v = $is_bd >= 50?$s_val+$s_bd:$s_val-$s_bd;
-            dump($good['name']);die;
             $ShopDataInsert['name'] =$good['name'];
             $ShopDataInsert['media_id'] =$good['media_id'];
             $ShopDataInsert['val'] = (string)$ts_v;
